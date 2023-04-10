@@ -3,8 +3,10 @@ package operatormetrics
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/prometheus/client_golang/prometheus"
+
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var _ = Describe("Registry", func() {
