@@ -32,32 +32,34 @@ this:
 ```go
 // metrics/operator_metrics.go
 
-var operatorMetrics = []operatormetrics.Metric{
-	{
-		Name: reconcileCount,
-		Help: "Number of times the operator has executed the reconcile loop",
-		Type: operatormetrics.Counter,
-		ConstLabels: map[string]string{
-			"controller": "my_controller",
-		},
-		StabilityLevel: operatormetrics.GA,
-	},
-	...
-}
+var (
+    operatorMetrics = []operatormetrics.Metric{
+        reconcileCount,
+    }
+
+    reconcileCount = operatormetrics.NewCounter(
+        operatormetrics.MetricOpts{
+            Name: metricPrefix + "reconcile_count",
+            Help: "Number of times the operator has executed the reconcile loop",
+            ConstLabels: map[string]string{
+                "controller": "guestbook",
+            },
+            StabilityLevel: operatormetrics.Stable,
+        },
+    )
+)
 
 func IncrementReconcileCountMetric() {
-    m := operatormetrics.GetCounterMetric(reconcileCount)
-    m.Inc()
+    reconcileCount.Inc()
 }
 ```
 
-All metrics would be registered in the `init()` function of a "central" file,
-such as:
+All metrics should be registered, for example, a `SetupMetrics()` function:
 
 ```go
 // metrics/metrics.go
 
-func init() {
+func SetupMetrics() {
 	err := operatormetrics.RegisterMetrics(operatorMetrics, crMetrics, ...)
 ...
 ```
@@ -93,28 +95,39 @@ func SetupCustomResourceCollector(k8sClient *kubernetes.Clientset) {
 	collectorK8sClient = k8sClient
 }
 
-var customResourceCollector = operatormetrics.Collector{
-	Metrics: []operatormetrics.Metric{
-		{
-			Name:           customResourceCount,
-			...
-		},
-	},
-	CollectCallback: customResourceCollectorCallback,
-}
+var (
+    customResourceCollector = operatormetrics.Collector{
+        Metrics: []operatormetrics.CollectorMetric{
+            {
+                Metric: crCount,
+                Labels: []string{"namespace"},
+            },
+        },
+        CollectCallback: customResourceCollectorCallback,
+    }
+
+    crCount = operatormetrics.NewGauge(
+        operatormetrics.MetricOpts{
+            Name:           metricPrefix + "cr_count",
+            Help:           "Number of existing guestbook custom resources",
+            ConstLabels:    map[string]string{"controller": "guestbook"},
+            StabilityLevel: operatormetrics.Beta,
+        },
+    )
+)
 
 func customResourceCollectorCallback() []operatormetrics.CollectionResult {
-	result := unstructured.UnstructuredList{}
-	err := collectorK8sClient.RESTClient().Get().Resource("MyCR").Do(context.Background()).Into(&result)
-	...
+    result := unstructured.UnstructuredList{}
+    err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
+    ...
 
-	return []operatormetrics.CollectionResult{
-		{
-			Name:   customResourceCount,
-			Labels: []string{"default"},
-			Value: float64(len(result.Items)),
-		},
-	}
+    return []operatormetrics.CollectorResult{
+        {
+            Metric: crCount,
+            Labels: []string{"default"},
+            Value:  float64(len(result.Items)),
+        },
+    }
 }
 ```
 
@@ -129,9 +142,9 @@ header, metric, and footer template that you can customize.
 
 ```go
 func main() {
-	docs.SetHeader("# My Custom Operator Metrics\n\n")
-	docsString := docs.BuildDocs(metrics.ListMetrics())
-	fmt.Println(docsString)
+    metrics.SetupMetrics()
+    docsString := docs.BuildDocs(metrics.ListMetrics())
+    fmt.Println(docsString)
 }
 ```
 

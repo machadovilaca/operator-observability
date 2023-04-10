@@ -4,7 +4,7 @@ import "github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 
 const metricPrefix = "guestbook_operator_"
 
-func init() {
+func SetupMetrics() {
 	err := operatormetrics.RegisterMetrics(operatorMetrics)
 	if err != nil {
 		panic(err)

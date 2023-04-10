@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	metrics.SetupMetrics()
 	docsString := docs.BuildDocs(metrics.ListMetrics())
 	fmt.Println(docsString)
 }
