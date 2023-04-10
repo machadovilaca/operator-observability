@@ -1,4 +1,4 @@
-GOLANDCI_LINT_VERSION ?= v1.51.2
+GOLANDCI_LINT_VERSION ?= v1.52.2
 
 sanity: goimport
 	go version

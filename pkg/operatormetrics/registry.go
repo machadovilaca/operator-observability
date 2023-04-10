@@ -1,6 +1,8 @@
 package operatormetrics
 
 import (
+	"fmt"
+
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,23 +11,19 @@ import (
 var operatorRegistry = newRegistry()
 
 type operatorRegisterer struct {
-	registeredMetrics    map[string]registeredMetric
+	registeredMetrics    map[string]Metric
 	registeredCollectors map[string]registeredCollector
 }
 
-type registeredMetric struct {
-	collector *prometheus.Collector
-	metric    Metric
-}
-
 type registeredCollector struct {
-	desc   *prometheus.Desc
-	metric Metric
+	desc      *prometheus.Desc
+	metric    Metric
+	valueType prometheus.ValueType
 }
 
 func newRegistry() operatorRegisterer {
 	return operatorRegisterer{
-		registeredMetrics:    map[string]registeredMetric{},
+		registeredMetrics:    map[string]Metric{},
 		registeredCollectors: map[string]registeredCollector{},
 	}
 }
@@ -34,15 +32,11 @@ func newRegistry() operatorRegisterer {
 func RegisterMetrics(allMetrics ...[]Metric) error {
 	for _, metricList := range allMetrics {
 		for _, metric := range metricList {
-			v, err := registerMetric(metric)
+			err := metrics.Registry.Register(metric.getCollector())
 			if err != nil {
 				return err
 			}
-
-			operatorRegistry.registeredMetrics[metric.Name] = registeredMetric{
-				collector: &v,
-				metric:    metric,
-			}
+			operatorRegistry.registeredMetrics[metric.GetOpts().Name] = metric
 		}
 	}
 
@@ -52,17 +46,40 @@ func RegisterMetrics(allMetrics ...[]Metric) error {
 // RegisterCollector registers the collector with the Prometheus registry.
 func RegisterCollector(collectors ...Collector) error {
 	for _, collector := range collectors {
+		for _, metric := range collector.Metrics {
+			err := createCollectorMetric(metric)
+			if err != nil {
+				return err
+			}
+		}
+
 		err := metrics.Registry.Register(collector)
 		if err != nil {
 			return err
 		}
+	}
 
-		for _, metric := range collector.Metrics {
-			operatorRegistry.registeredCollectors[metric.Name] = registeredCollector{
-				desc:   prometheus.NewDesc(metric.Name, metric.Help, metric.Labels, metric.ConstLabels),
-				metric: metric,
-			}
-		}
+	return nil
+}
+
+func createCollectorMetric(metric CollectorMetric) error {
+	opts := metric.GetOpts()
+	mType := metric.GetType()
+	var valueType prometheus.ValueType
+
+	switch mType {
+	case CounterType:
+		valueType = prometheus.CounterValue
+	case GaugeType:
+		valueType = prometheus.GaugeValue
+	default:
+		return fmt.Errorf("collector metric %q has invalid metric type: %q", opts.Name, mType)
+	}
+
+	operatorRegistry.registeredCollectors[opts.Name] = registeredCollector{
+		desc:      prometheus.NewDesc(opts.Name, opts.Help, metric.Labels, opts.ConstLabels),
+		metric:    metric,
+		valueType: valueType,
 	}
 
 	return nil
@@ -73,7 +90,7 @@ func ListMetrics() []Metric {
 	var result []Metric
 
 	for _, rm := range operatorRegistry.registeredMetrics {
-		result = append(result, rm.metric)
+		result = append(result, rm)
 	}
 
 	for _, rc := range operatorRegistry.registeredCollectors {

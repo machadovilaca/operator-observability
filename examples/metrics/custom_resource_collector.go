@@ -4,45 +4,50 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
-const customResourceCount = metricPrefix + "cr_count"
-
 var (
-	collectorK8sClient *kubernetes.Clientset
+	collectorK8sClient client.Client
 )
 
-func SetupCustomResourceCollector(k8sClient *kubernetes.Clientset) {
+func SetupCustomResourceCollector(k8sClient client.Client) {
 	collectorK8sClient = k8sClient
 }
 
-var customResourceCollector = operatormetrics.Collector{
-	Metrics: []operatormetrics.Metric{
-		{
-			Name:           customResourceCount,
-			Help:           "Number of existing guestbook custom resources",
-			Type:           operatormetrics.Gauge,
-			ConstLabels:    map[string]string{"controller": "guestbook"},
-			Labels:         []string{"namespace"},
-			StabilityLevel: operatormetrics.Beta,
+var (
+	customResourceCollector = operatormetrics.Collector{
+		Metrics: []operatormetrics.CollectorMetric{
+			{
+				Metric: crCount,
+				Labels: []string{"namespace"},
+			},
 		},
-	},
-	CollectCallback: customResourceCollectorCallback,
-}
-
-func customResourceCollectorCallback() []operatormetrics.CollectionResult {
-	result := unstructured.UnstructuredList{}
-	err := collectorK8sClient.RESTClient().Get().Resource("MyCR").Do(context.Background()).Into(&result)
-	if err != nil {
-		return []operatormetrics.CollectionResult{}
+		CollectCallback: customResourceCollectorCallback,
 	}
 
-	return []operatormetrics.CollectionResult{
+	crCount = operatormetrics.NewGauge(
+		operatormetrics.MetricOpts{
+			Name:           metricPrefix + "cr_count",
+			Help:           "Number of existing guestbook custom resources",
+			ConstLabels:    map[string]string{"controller": "guestbook"},
+			StabilityLevel: operatormetrics.Beta,
+		},
+	)
+)
+
+func customResourceCollectorCallback() []operatormetrics.CollectorResult {
+	result := unstructured.UnstructuredList{}
+	err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
+	if err != nil {
+		return []operatormetrics.CollectorResult{}
+	}
+
+	return []operatormetrics.CollectorResult{
 		{
-			Name:   customResourceCount,
+			Metric: crCount,
 			Labels: []string{"default"},
 			Value:  float64(len(result.Items)),
 		},

@@ -1,0 +1,22 @@
+linters:
+  enable:
+    - revive
+
+linters-settings:
+  revive:
+    ignore-generated-header: true
+    severity: error
+    rules:
+      - name: error-return
+      - name: error-strings
+      - name: error-naming
+      - name: exported
+      - name: if-return
+      - name: increment-decrement
+      - name: var-naming
+      - name: var-declaration
+      - name: package-comments
+      - name: receiver-naming
+      - name: unexported-return
+      - name: errorf
+      - name: early-return

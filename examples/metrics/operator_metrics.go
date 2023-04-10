@@ -2,36 +2,37 @@ package metrics
 
 import "github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 
-const (
-	reconcileCount  = metricPrefix + "reconcile_count"
-	reconcileAction = metricPrefix + "reconcile_action_count"
+var (
+	operatorMetrics = []operatormetrics.Metric{
+		reconcileCount,
+		reconcileAction,
+	}
+
+	reconcileCount = operatormetrics.NewCounter(
+		operatormetrics.MetricOpts{
+			Name: metricPrefix + "reconcile_count",
+			Help: "Number of times the operator has executed the reconcile loop",
+			ConstLabels: map[string]string{
+				"controller": "guestbook",
+			},
+			StabilityLevel: operatormetrics.Stable,
+		},
+	)
+
+	reconcileAction = operatormetrics.NewCounterVec(
+		operatormetrics.MetricOpts{
+			Name:           metricPrefix + "reconcile_action_count",
+			Help:           "Number of times the operator has executed the reconcile loop with a given action",
+			StabilityLevel: operatormetrics.Alpha,
+		},
+		[]string{"action"},
+	)
 )
 
-var operatorMetrics = []operatormetrics.Metric{
-	{
-		Name: reconcileCount,
-		Help: "Number of times the operator has executed the reconcile loop",
-		Type: operatormetrics.Counter,
-		ConstLabels: map[string]string{
-			"controller": "guestbook",
-		},
-		StabilityLevel: operatormetrics.GA,
-	},
-	{
-		Name:           reconcileAction,
-		Help:           "Number of times the operator has executed the reconcile loop with a given action",
-		Type:           operatormetrics.Counter,
-		Labels:         []string{"action"},
-		StabilityLevel: operatormetrics.Alpha,
-	},
-}
-
 func IncrementReconcileCountMetric() {
-	m := operatormetrics.GetCounterMetric(reconcileCount)
-	m.Inc()
+	reconcileCount.Inc()
 }
 
 func IncrementReconcileActionMetric(action string) {
-	m := operatormetrics.GetCounterMetricWithLabels(reconcileAction, action)
-	m.Inc()
+	reconcileAction.WithLabelValues(action).Inc()
 }

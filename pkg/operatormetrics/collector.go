@@ -7,42 +7,44 @@ import "github.com/prometheus/client_golang/prometheus"
 // function.
 type Collector struct {
 	// Metrics is a list of metrics to be collected by the collector.
-	Metrics []Metric
+	Metrics []CollectorMetric
 
 	// CollectCallback is a function that returns a list of CollectionResults.
 	// The CollectionResults are used to populate the metrics in the collector.
-	CollectCallback func() []CollectionResult
+	CollectCallback func() []CollectorResult
 }
 
-// CollectionResult is a single metric value with a set of labels.
-type CollectionResult struct {
-	Name   string
-	Value  float64
+type CollectorMetric struct {
+	Metric
 	Labels []string
 }
 
-// Describe implements the prometheus.Collector interface.
-func (c Collector) Describe(_ chan<- *prometheus.Desc) {}
+type CollectorResult struct {
+	Metric Metric
+	Labels []string
+	Value  float64
+}
 
-// Collect implements the prometheus.Collector interface.
+func (c Collector) Describe(ch chan<- *prometheus.Desc) {
+	for _, cm := range c.Metrics {
+		rc, ok := operatorRegistry.registeredCollectors[cm.Metric.GetOpts().Name]
+		if !ok {
+			continue
+		}
+		ch <- rc.desc
+	}
+}
+
 func (c Collector) Collect(ch chan<- prometheus.Metric) {
 	collectedMetrics := c.CollectCallback()
 
 	for _, cm := range collectedMetrics {
-		rc, ok := operatorRegistry.registeredCollectors[cm.Name]
+		rc, ok := operatorRegistry.registeredCollectors[cm.Metric.GetOpts().Name]
 		if !ok {
 			continue
 		}
 
-		promType := prometheus.UntypedValue
-		switch rc.metric.Type {
-		case Counter:
-			promType = prometheus.CounterValue
-		case Gauge:
-			promType = prometheus.GaugeValue
-		}
-
-		mv, _ := prometheus.NewConstMetric(rc.desc, promType, cm.Value, cm.Labels...)
+		mv, _ := prometheus.NewConstMetric(rc.desc, rc.valueType, cm.Value, cm.Labels...)
 		ch <- mv
 	}
 }
