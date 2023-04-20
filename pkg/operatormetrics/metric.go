@@ -8,7 +8,7 @@ type MetricOpts struct {
 
 	ConstLabels map[string]string
 
-	StabilityLevel StabilityLevel
+	ExtraFields map[string]string
 }
 
 type Metric interface {
@@ -17,14 +17,6 @@ type Metric interface {
 
 	getCollector() prometheus.Collector
 }
-
-type StabilityLevel string
-
-const (
-	Alpha  StabilityLevel = "Alpha"
-	Beta   StabilityLevel = "Beta"
-	Stable StabilityLevel = "Stable"
-)
 
 type MetricType string
 

@@ -15,7 +15,7 @@ const defaultTemplate = `# Operator Metrics
 {{- range . }}
 
 ### {{.Name}}
-[{{.StabilityLevel}}] {{.Help}}. Type: {{.Type}}.
+{{.Help}}. Type: {{.Type}}.
 {{- end }}
 
 ## Developing new metrics
@@ -26,10 +26,10 @@ this document.
 `
 
 type metricDocs struct {
-	Name           string
-	Help           string
-	Type           string
-	StabilityLevel string
+	Name        string
+	Help        string
+	Type        string
+	ExtraFields map[string]string
 }
 
 // BuildDocsWithCustomTemplate returns a string with the documentation for the
@@ -59,10 +59,10 @@ func buildMetricsDocs(metrics []operatormetrics.Metric) []metricDocs {
 	for i, metric := range metrics {
 		metricOpts := metric.GetOpts()
 		metricsDocs[i] = metricDocs{
-			Name:           metricOpts.Name,
-			Help:           metricOpts.Help,
-			Type:           getAndConvertMetricType(metric),
-			StabilityLevel: string(metricOpts.StabilityLevel),
+			Name:        metricOpts.Name,
+			Help:        metricOpts.Help,
+			Type:        getAndConvertMetricType(metric),
+			ExtraFields: metricOpts.ExtraFields,
 		}
 	}
 	sortMetricsDocs(metricsDocs)
