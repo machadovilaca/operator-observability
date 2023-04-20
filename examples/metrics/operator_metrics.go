@@ -15,15 +15,19 @@ var (
 			ConstLabels: map[string]string{
 				"controller": "guestbook",
 			},
-			StabilityLevel: operatormetrics.Stable,
+			ExtraFields: map[string]string{
+				"StabilityLevel": "STABLE",
+			},
 		},
 	)
 
 	reconcileAction = operatormetrics.NewCounterVec(
 		operatormetrics.MetricOpts{
-			Name:           metricPrefix + "reconcile_action_count",
-			Help:           "Number of times the operator has executed the reconcile loop with a given action",
-			StabilityLevel: operatormetrics.Alpha,
+			Name: metricPrefix + "reconcile_action_count",
+			Help: "Number of times the operator has executed the reconcile loop with a given action",
+			ExtraFields: map[string]string{
+				"StabilityLevel": "ALPHA",
+			},
 		},
 		[]string{"action"},
 	)

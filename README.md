@@ -44,7 +44,9 @@ var (
             ConstLabels: map[string]string{
                 "controller": "guestbook",
             },
-            StabilityLevel: operatormetrics.Stable,
+            ExtraFields: map[string]string{
+                "StabilityLevel": "STABLE",
+            },
         },
     )
 )
@@ -111,7 +113,10 @@ var (
             Name:           metricPrefix + "cr_count",
             Help:           "Number of existing guestbook custom resources",
             ConstLabels:    map[string]string{"controller": "guestbook"},
-            StabilityLevel: operatormetrics.Beta,
+            ExtraFields: map[string]string{
+                "StabilityLevel":    "DEPRECATED",
+                "DeprecatedVersion": "1.14.0",
+            },
         },
     )
 )

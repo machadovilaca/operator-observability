@@ -30,10 +30,13 @@ var (
 
 	crCount = operatormetrics.NewGauge(
 		operatormetrics.MetricOpts{
-			Name:           metricPrefix + "cr_count",
-			Help:           "Number of existing guestbook custom resources",
-			ConstLabels:    map[string]string{"controller": "guestbook"},
-			StabilityLevel: operatormetrics.Beta,
+			Name:        metricPrefix + "cr_count",
+			Help:        "Number of existing guestbook custom resources",
+			ConstLabels: map[string]string{"controller": "guestbook"},
+			ExtraFields: map[string]string{
+				"StabilityLevel":    "DEPRECATED",
+				"DeprecatedVersion": "1.14.0",
+			},
 		},
 	)
 )

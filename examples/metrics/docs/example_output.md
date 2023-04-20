@@ -1,13 +1,13 @@
-# Operator Metrics
+# Guestbook Operator Metrics
 
 ### guestbook_operator_cr_count
-[Beta] Number of existing guestbook custom resources. Type: Gauge.
+[DEPRECATED in 1.14.0] Number of existing guestbook custom resources. Type: Gauge.
 
 ### guestbook_operator_reconcile_action_count
-[Alpha] Number of times the operator has executed the reconcile loop with a given action. Type: Counter.
+[ALPHA] Number of times the operator has executed the reconcile loop with a given action. Type: Counter.
 
 ### guestbook_operator_reconcile_count
-[Stable] Number of times the operator has executed the reconcile loop. Type: Counter.
+Number of times the operator has executed the reconcile loop. Type: Counter.
 
 ## Developing new metrics
 
