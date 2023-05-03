@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/machadovilaca/operator-observability/examples/metrics"
+	"github.com/machadovilaca/operator-observability/examples/rules"
 	"github.com/machadovilaca/operator-observability/pkg/docs"
 )
 
@@ -17,7 +18,7 @@ const tpl = `# Guestbook Operator Metrics
 {{- end -}}
 
 {{- $stabilityLevel := "" -}}
-{{- if ne .ExtraFields.StabilityLevel "STABLE" -}}
+{{- if and (.ExtraFields.StabilityLevel) (ne .ExtraFields.StabilityLevel "STABLE") -}}
 	{{- $stabilityLevel = printf "[%s%s] " .ExtraFields.StabilityLevel $deprecatedVersion -}}
 {{- end -}}
 
@@ -35,6 +36,9 @@ this document.
 
 func main() {
 	metrics.SetupMetrics()
-	docsString := docs.BuildDocsWithCustomTemplate(metrics.ListMetrics(), tpl)
+	_ = rules.SetupRules()
+
+	//docsString := docs.BuildMetricsDocs(metrics.ListMetrics(), rules.ListRecordingRules())
+	docsString := docs.BuildMetricsDocsWithCustomTemplate(metrics.ListMetrics(), rules.ListRecordingRules(), tpl)
 	fmt.Println(docsString)
 }
