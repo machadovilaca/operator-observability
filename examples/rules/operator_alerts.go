@@ -16,6 +16,9 @@ var operatorAlerts = []promv1.Rule{
 			"summary":     "Guestbook operator is down",
 			"description": "Guestbook operator is down for more than 5 minutes.",
 		},
+		Labels: map[string]string{
+			"severity": "critical",
+		},
 	},
 	{
 		Alert: "GuestbookOperatorNotReady",
@@ -24,6 +27,9 @@ var operatorAlerts = []promv1.Rule{
 		Annotations: map[string]string{
 			"summary":     "Guestbook operator is not ready",
 			"description": "Guestbook operator is not ready for more than 5 minutes.",
+		},
+		Labels: map[string]string{
+			"severity": "critical",
 		},
 	},
 }

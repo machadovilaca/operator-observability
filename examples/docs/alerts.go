@@ -8,8 +8,7 @@ import (
 )
 
 func main() {
-	_ = rules.SetupRules()
-
+	rules.SetupRules()
 	docsString := docs.BuildAlertsDocs(rules.ListAlerts())
 	fmt.Println(docsString)
 }

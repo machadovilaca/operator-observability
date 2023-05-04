@@ -36,7 +36,7 @@ this document.
 
 func main() {
 	metrics.SetupMetrics()
-	_ = rules.SetupRules()
+	rules.SetupRules()
 
 	//docsString := docs.BuildMetricsDocs(metrics.ListMetrics(), rules.ListRecordingRules())
 	docsString := docs.BuildMetricsDocsWithCustomTemplate(metrics.ListMetrics(), rules.ListRecordingRules(), tpl)

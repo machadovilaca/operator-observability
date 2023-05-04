@@ -16,7 +16,9 @@ const defaultMetricsTemplate = `# Operator Metrics
 {{- range . }}
 
 ### {{.Name}}
-{{.Help}}. Type: {{.Type}}.
+{{.Help}}.
+
+Type: {{.Type}}.
 {{- end }}
 
 ## Developing new metrics

@@ -3,9 +3,8 @@ package operatorrules
 import (
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	"github.com/grafana/regexp"
+	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
@@ -25,36 +24,38 @@ func SetAlertValidator(validator func(alert *promv1.Rule) error) {
 }
 
 func defaultRecordingRuleValidation(recordingRule *RecordingRule) error {
+	var result *multierror.Error
+
 	if recordingRule.MetricsOpts.Name == "" {
-		return fmt.Errorf("recording rule must have a name")
+		result = multierror.Append(result, fmt.Errorf("recording rule must have a name"))
 	}
 
-	if recordingRule.Expr == intstr.FromString("") {
-		return fmt.Errorf("recording rule must have an expression")
+	if recordingRule.Expr.StrVal == "" {
+		result = multierror.Append(result, fmt.Errorf("recording rule must have an expression"))
 	}
 
-	return nil
+	return result.ErrorOrNil()
 }
 
 // based on https://sdk.operatorframework.io/docs/best-practices/observability-best-practices/#alerts-style-guide
 func defaultAlertValidation(alert *promv1.Rule) error {
+	var result *multierror.Error
+
 	if alert.Alert == "" || !isPascalCase(alert.Alert) {
-		return fmt.Errorf("alert must have a name in PascalCase format")
+		result = multierror.Append(result, fmt.Errorf("alert must have a name in PascalCase format"))
 	}
 
-	if alert.Expr == intstr.FromString("") {
-		return fmt.Errorf("alert must have an expression")
+	if alert.Expr.StrVal == "" {
+		result = multierror.Append(result, fmt.Errorf("alert must have an expression"))
 	}
 
 	// Alerts MUST include a severity label indicating the alert’s urgency.
-	if err := validateLabels(alert); err != nil {
-		return err
-	}
+	result = multierror.Append(result, validateLabels(alert))
 
 	// Alerts MUST include summary and description annotations.
-	err := validateAnnotations(alert)
+	result = multierror.Append(result, validateAnnotations(alert))
 
-	return err
+	return result.ErrorOrNil()
 }
 
 func isPascalCase(s string) bool {
@@ -65,28 +66,25 @@ func isPascalCase(s string) bool {
 
 func validateLabels(alert *promv1.Rule) error {
 	severity := alert.Labels["severity"]
-
-	if severity == "" {
-		return fmt.Errorf("alert must have a severity label")
-	}
-
-	if severity != "critical" && severity != "warning" && severity != "info" {
-		return fmt.Errorf("alert severity must be one of critical, warning, info")
+	if severity == "" || (severity != "critical" && severity != "warning" && severity != "info") {
+		return fmt.Errorf("alert must have a severity label with value critical, warning, or info")
 	}
 
 	return nil
 }
 
 func validateAnnotations(alert *promv1.Rule) error {
+	var result error
+
 	summary := alert.Annotations["summary"]
 	if summary == "" {
-		return fmt.Errorf("alert must have a summary annotation")
+		result = multierror.Append(result, fmt.Errorf("alert must have a summary annotation"))
 	}
 
 	description := alert.Annotations["description"]
 	if description == "" {
-		return fmt.Errorf("alert must have a description annotation")
+		result = multierror.Append(result, fmt.Errorf("alert must have a description annotation"))
 	}
 
-	return nil
+	return result
 }

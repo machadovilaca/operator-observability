@@ -9,7 +9,7 @@ import (
 )
 
 // BuildPrometheusRule builds a PrometheusRule object from the registered recording rules and alerts.
-func BuildPrometheusRule(name string, namespace string, labels map[string]string) (*promv1.PrometheusRule, error) {
+func BuildPrometheusRule(name, namespace string, labels map[string]string) (*promv1.PrometheusRule, error) {
 	spec, err := buildPrometheusRuleSpec()
 	if err != nil {
 		return nil, err
@@ -17,8 +17,8 @@ func BuildPrometheusRule(name string, namespace string, labels map[string]string
 
 	return &promv1.PrometheusRule{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "PrometheusRule",
-			APIVersion: metav1.SchemeGroupVersion.String(),
+			Kind:       promv1.PrometheusRuleKind,
+			APIVersion: promv1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

@@ -23,7 +23,7 @@ var (
 	}
 )
 
-func SetupRules() *promv1.PrometheusRule {
+func SetupRules() {
 	err := operatorrules.RegisterRecordingRules(recordingRules...)
 	if err != nil {
 		panic(err)
@@ -33,17 +33,19 @@ func SetupRules() *promv1.PrometheusRule {
 	if err != nil {
 		panic(err)
 	}
+}
 
+func BuildPrometheusRule() (*promv1.PrometheusRule, error) {
 	rules, err := operatorrules.BuildPrometheusRule(
 		"guestbook-operator-prometheus-rules",
 		"default",
 		map[string]string{"app": "guestbook-operator"},
 	)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return rules
+	return rules, nil
 }
 
 func ListRecordingRules() []operatorrules.RecordingRule {

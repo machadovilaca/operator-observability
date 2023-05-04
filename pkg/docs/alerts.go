@@ -14,13 +14,13 @@ const defaultAlertsTemplate = `# Operator Alerts
 {{- range . }}
 
 ### {{.Name}}
-{{- if and (.Annotations) -}}
-{{- with index .Annotations "summary" }}
-Summary: {{ . }}.
-{{- end -}}
-{{- end -}}
+**Summary:** {{ index .Annotations "summary" }}.
+
+**Description:** {{ index .Annotations "description" }}.
+
+**Severity:** {{ index .Labels "severity" }}.
 {{- if .For }}
-For: {{ .For }}.
+**For:** {{ .For }}.
 {{- end -}}
 {{- end }}
 
