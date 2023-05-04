@@ -59,7 +59,7 @@ func defaultAlertValidation(alert *promv1.Rule) error {
 }
 
 func isPascalCase(s string) bool {
-	pascalCasePattern := `^[A-Z][a-z]*(?:[A-Z][a-z]*)*$`
+	pascalCasePattern := `^[A-Z][a-zA-Z0-9]*(?:[A-Z][a-zA-Z0-9]*)*$`
 	pascalCaseRegex := regexp.MustCompile(pascalCasePattern)
 	return pascalCaseRegex.MatchString(s)
 }
