@@ -192,6 +192,9 @@ var operatorAlerts = []promv1.Rule{
             "summary":     "Guestbook operator is not ready",
             "description": "Guestbook operator is not ready for more than 5 minutes.",
         },
+        Labels: map[string]string{
+            "severity": "critical",
+        },
     },
 }
 
@@ -229,7 +232,7 @@ For metrics and recording rules:
 ```go
 func main() {
     metrics.SetupMetrics()
-    _ = rules.SetupRules()
+    rules.SetupRules()
 
     docsString := docs.BuildMetricsDocs(metrics.ListMetrics(), rules.ListRecordingRules())
     fmt.Println(docsString)
@@ -239,8 +242,7 @@ func main() {
 For alerts:
 ```go
 func main() {
-    _ = rules.SetupRules()
-
+    rules.SetupRules()
     docsString := docs.BuildAlertsDocs(alerts.ListAlerts())
     fmt.Println(docsString)
 }
