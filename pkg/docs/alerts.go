@@ -20,6 +20,7 @@ const defaultAlertsTemplate = `# Operator Alerts
 
 **Severity:** {{ index .Labels "severity" }}.
 {{- if .For }}
+
 **For:** {{ .For }}.
 {{- end -}}
 {{- end }}
