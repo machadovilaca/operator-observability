@@ -3,8 +3,6 @@ package operatormetrics
 import (
 	"fmt"
 
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -32,7 +30,7 @@ func newRegistry() operatorRegisterer {
 func RegisterMetrics(allMetrics ...[]Metric) error {
 	for _, metricList := range allMetrics {
 		for _, metric := range metricList {
-			err := metrics.Registry.Register(metric.getCollector())
+			err := prometheus.Register(metric.getCollector())
 			if err != nil {
 				return err
 			}
@@ -53,7 +51,7 @@ func RegisterCollector(collectors ...Collector) error {
 			}
 		}
 
-		err := metrics.Registry.Register(collector)
+		err := prometheus.Register(collector)
 		if err != nil {
 			return err
 		}

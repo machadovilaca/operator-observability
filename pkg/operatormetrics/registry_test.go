@@ -4,8 +4,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -23,7 +21,7 @@ var _ = Describe("Registry", func() {
 
 	Describe("RegisterMetrics", func() {
 		BeforeEach(func() {
-			metrics.Registry = prometheus.NewRegistry()
+			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			operatorRegistry.registeredMetrics = make(map[string]Metric)
 		})
 
@@ -54,7 +52,7 @@ var _ = Describe("Registry", func() {
 
 	Describe("ListMetrics", func() {
 		BeforeEach(func() {
-			metrics.Registry = prometheus.NewRegistry()
+			prometheus.DefaultRegisterer = prometheus.NewRegistry()
 			operatorRegistry.registeredMetrics = make(map[string]Metric)
 		})
 
