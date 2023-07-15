@@ -7,6 +7,9 @@ The goal is to help developers of Kubernetes Operators follow the
 [Operator SDK Observability Best Practices](https://sdk.operatorframework.io/docs/best-practices/observability-best-practices/)
 while instrumenting their operators and avoiding common pitfalls and mistakes.
 
+Check the [examples](examples) folder for a complete example of how to use
+these utilities.
+
 ## Design
 
 ### Metrics
@@ -61,6 +64,10 @@ All metrics should be registered, for example, a `SetupMetrics()` function:
 // metrics/metrics.go
 
 func SetupMetrics() {
+    // When using controller-runtime metrics, you must register the metrics
+    // with the controller-runtime metrics registry
+    operatormetrics.Register = operatormetrics.ControllerRuntimeRegister
+
 	err := operatormetrics.RegisterMetrics(operatorMetrics, crMetrics, ...)
 ...
 ```
@@ -249,6 +256,11 @@ func main() {
 ```
 
 ## Next Steps
+
+- Add a declarative way to define metrics, recording rules, and alerts
+
+- Create a set of macros to make it easier to define metrics, recording rules,
+and alerts expressions
 
 - Propose design changes to the Operator SDK examples
 
