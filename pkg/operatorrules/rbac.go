@@ -7,10 +7,6 @@ import (
 
 func BuildRoleAndRoleBinding(namePrefix, namespace, promSAName, promSANamespace string, labels map[string]string) (*rbacv1.Role, *rbacv1.RoleBinding) {
 	r := &rbacv1.Role{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Role",
-			APIVersion: rbacv1.GroupName,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namePrefix + "-role",
 			Namespace: namespace,
@@ -26,10 +22,6 @@ func BuildRoleAndRoleBinding(namePrefix, namespace, promSAName, promSANamespace 
 	}
 
 	rb := &rbacv1.RoleBinding{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "RoleBinding",
-			APIVersion: rbacv1.GroupName,
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namePrefix + "-rolebinding",
 			Namespace: namespace,

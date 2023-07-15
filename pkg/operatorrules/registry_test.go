@@ -12,6 +12,10 @@ import (
 )
 
 var _ = Describe("OperatorRules", func() {
+	BeforeEach(func() {
+		operatorRegistry = newRegistry()
+	})
+
 	Context("RecordingRule Registration", func() {
 		It("should register recording rules without error", func() {
 			recordingRules := []RecordingRule{

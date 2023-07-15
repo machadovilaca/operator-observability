@@ -16,10 +16,6 @@ func BuildPrometheusRule(name, namespace string, labels map[string]string) (*pro
 	}
 
 	return &promv1.PrometheusRule{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       promv1.PrometheusRuleKind,
-			APIVersion: promv1.SchemeGroupVersion.String(),
-		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
