@@ -17,11 +17,17 @@ var (
 )
 
 func SetupMetrics() {
+	// When using controller-runtime metrics, you must register the metrics
+	// with the controller-runtime metrics registry
+	operatormetrics.Register = operatormetrics.ControllerRuntimeRegister
+
+	// Add your custom metrics here
 	err := operatormetrics.RegisterMetrics(metrics...)
 	if err != nil {
 		panic(err)
 	}
 
+	// Add your custom collectors here
 	err = operatormetrics.RegisterCollector(collectors...)
 	if err != nil {
 		panic(err)
