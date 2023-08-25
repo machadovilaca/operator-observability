@@ -4,8 +4,6 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -27,7 +25,6 @@ var _ = Describe("Collector", func() {
 
 	Describe("Collect", func() {
 		BeforeEach(func() {
-			metrics.Registry = prometheus.NewRegistry()
 			operatorRegistry.registeredCollectors = make(map[string]registeredCollector)
 		})
 
