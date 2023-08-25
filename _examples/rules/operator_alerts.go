@@ -3,9 +3,8 @@ package rules
 import (
 	"fmt"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 var operatorAlerts = []promv1.Rule{

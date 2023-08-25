@@ -6,7 +6,7 @@ sanity: goimport
 	go mod tidy -v
 	go mod vendor
 	git add -N vendor
-	git difftool -y --trust-exit-code --extcmd=./hack/diff-csv.sh
+	git difftool -y --trust-exit-code
 
 goimport:
 	go install golang.org/x/tools/cmd/goimports@latest
