@@ -282,6 +282,10 @@ func main() {
 }
 ```
 
+## Documentation
+
+- Use a Different Registry for metrics and collectors: [docs/UseDifferentRegistry.md](docs/UseDifferentRegistry.md)
+
 ## Next Steps
 
 - Add a declarative way to define metrics, recording rules, and alerts
