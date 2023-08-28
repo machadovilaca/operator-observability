@@ -1,14 +1,20 @@
-# Kubernetes Operator Observability Utilities
+# 🔍 Kubernetes Operator Observability Toolkit
 
-This repository contains a set of utilities for Kubernetes Operators to help
-with observability.
+This repository contains a set of opinionated observability utilities and
+wrappers for Kubernetes Operators using
+[Prometheus Golang client](https://github.com/prometheus/client_golang).
 
-The goal is to help developers of Kubernetes Operators follow the
-[Operator SDK Observability Best Practices](https://sdk.operatorframework.io/docs/best-practices/observability-best-practices/)
-while instrumenting their operators and avoiding common pitfalls and mistakes.
+The goal is to help developers of Kubernetes Operators instrument their
+operators, while avoiding common pitfalls and mistakes, and keep their codebase
+organised, clean and well documented.
 
-Check the [examples](_examples) folder for a complete example of how to use
-these utilities.
+### 🎯 Our Mission:
+Empower Kubernetes Operator developers with tools that align with the
+[Operator SDK Observability Best Practices](https://sdk.operatorframework.io/docs/best-practices/observability-best-practices/).
+
+### 🚀 Get Started:
+Explore the [examples](_examples) directory for hands-on guidance on leveraging
+these utilities and wrappers.
 
 ## Design
 
@@ -16,139 +22,146 @@ these utilities.
 
 Operator developers can make use of the utilities provided here to uniformize
 the way metrics are registered and their values set. In many projects,
-developers register and set metrics in multiple ways and places. This makes it
-hard to have a global view of the existing metrics, their values, and how they
-are set.
+inconsistent handling of metrics registration and setting can obscure the bigger
+picture. Developers define, register and set metrics in multiple ways and
+places. This makes it hard to have a global view of the existing metrics, their
+values, and how they are set. This tool aims to bring clarity and consistency to
+the way metrics are handled.
 
 #### Usage
 
-Define different scopes for different metrics. Some metrics such as
-`...reconcile_count` are related to the operator workload itself, while others
-like `...out_of_band_modifications_count` are related to the custom resources
-managed by the operator. These metrics can be grouped in different files so that
-we have a clear separation of concerns.
-
-The file holding the metrics related to the operator workload might look like
-this:
+**Scope Your Metrics:** Differentiate metrics based on their relevance. For
+instance, metrics like `...reconcile_count` pertain to the operator's workload,
+while metrics like `...out_of_band_modifications_count` relate to the custom
+resources the operator manages. Grouping these metrics in separate files ensures
+clarity and separation of concerns.
 
 ```go
 // metrics/operator_metrics.go
 
 var (
-    operatorMetrics = []operatormetrics.Metric{
-        reconcileCount,
-    }
+  operatorMetrics = []operatormetrics.Metric{
+    reconcileCount,
+  }
 
-    reconcileCount = operatormetrics.NewCounter(
-        operatormetrics.MetricOpts{
-            Name: metricPrefix + "reconcile_count",
-            Help: "Number of times the operator has executed the reconcile loop",
-            ConstLabels: map[string]string{
-                "controller": "guestbook",
-            },
-            ExtraFields: map[string]string{
-                "StabilityLevel": "STABLE",
-            },
-        },
-    )
+  reconcileCount = operatormetrics.NewCounter(
+    operatormetrics.MetricOpts{
+      Name: metricPrefix + "reconcile_count",
+      Help: "Number of times the operator has executed the reconcile loop",
+      ConstLabels: map[string]string{
+        "controller": "guestbook",
+      },
+      ExtraFields: map[string]string{
+        "StabilityLevel": "STABLE",
+      },
+    },
+  )
 )
 
 func IncrementReconcileCountMetric() {
-    reconcileCount.Inc()
+  reconcileCount.Inc()
 }
 ```
 
-All metrics should be registered, for example, a `SetupMetrics()` function:
+**Registration:** All metrics should be registered, ideally within a
+`SetupMetrics()` function. This ensures a centralized point of control for all
+your metrics.
 
 ```go
 // metrics/metrics.go
 import (
-	runtimemetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
+  runtimemetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 func SetupMetrics() {
-    // When using controller-runtime metrics, you must register the metrics
-    // with the controller-runtime metrics registry
-	operatormetrics.Register = runtimemetrics.Registry.Register
-
-	err := operatormetrics.RegisterMetrics(operatorMetrics, crMetrics, ...)
+  // When using controller-runtime metrics, you must register the metrics
+  // with the controller-runtime metrics registry 
+  operatormetrics.Register = runtimemetrics.Registry.Register
+  
+  err := operatormetrics.RegisterMetrics(operatorMetrics, crMetrics, ...)
 ...
 ```
 
-And the operator developer would use the `IncrementReconcileCountMetric()` to
-increment the `...reconcile_count` metric in the reconcile loop. Remember that
-for metrics that require more logic to set their values, we should still make an
-effort to avoid adding monitoring logic code to the business logic of the
-operator.
+**Business Logic Separation:** While setting metric values, it's crucial to keep
+monitoring logic distinct from the core business logic of the operator. This
+ensures that the primary functionality remains uncluttered.  The operator
+developer would use the `IncrementReconcileCountMetric()` to increment the
+`...reconcile_count` metric in the reconcile loop.
+
+Remember that for metrics that require more logic to set their values, we should
+still make an effort to avoid adding monitoring logic code to the business logic
+of the operator.
 
 #### Collectors
 
-If at any time you need to pull information from other systems, such as the
-Kubernetes or Cloud Provider APIs, you can create a custom collector. The
-collector should follow all the same principles as described above for the
-metrics. It should also be registered in the `init()` function with:
+Need to fetch data from Kubernetes resources or external systems like Cloud
+Provider APIs? Create a custom collector. Adhering to the principles outlined
+for metrics, these collectors come with a callback function triggered during
+metric collection. This function serves as the bridge to external systems,
+fetching data and setting metric values accordingly.
+
+In the Prometheus Golang client, collectors are free to create and push any new
+metric. Most of the time, that leads to confusion and inconsistency. This
+package enforces a strict way to define collectors by explicitly specifying the
+metrics that the collector will push. This ensures that the created metrics are
+consistent, making them easier to track, validate, and document.
 
 ```go
 err = operatormetrics.RegisterCollector(customResourceCollector, ...)
 ...
 ```
 
-The biggest difference from metrics is that the collectors we create will have a
-callback function that will be called when the metrics are collected. This
-callback function should be used to pull information from other systems and set
-the values of the metrics.
-
 ```go
 // metrics/custom_resource_collector.go
 
 ...
 func SetupCustomResourceCollector(k8sClient *kubernetes.Clientset) {
-	collectorK8sClient = k8sClient
+  collectorK8sClient = k8sClient
 }
 
 var (
-    customResourceCollector = operatormetrics.Collector{
-        Metrics: []operatormetrics.CollectorMetric{
-            {
-                Metric: crCount,
-                Labels: []string{"namespace"},
-            },
-        },
-        CollectCallback: customResourceCollectorCallback,
-    }
+  customResourceCollector = operatormetrics.Collector{
+    Metrics: []operatormetrics.CollectorMetric{
+      {
+        Metric: crCount,
+        Labels: []string{"namespace"},
+      },
+    },
+    CollectCallback: customResourceCollectorCallback,
+  }
 
-    crCount = operatormetrics.NewGauge(
-        operatormetrics.MetricOpts{
-            Name:           metricPrefix + "cr_count",
-            Help:           "Number of existing guestbook custom resources",
-            ConstLabels:    map[string]string{"controller": "guestbook"},
-            ExtraFields: map[string]string{
-                "StabilityLevel":    "DEPRECATED",
-                "DeprecatedVersion": "1.14.0",
-            },
-        },
-    )
+  crCount = operatormetrics.NewGauge(
+    operatormetrics.MetricOpts{
+      Name:        metricPrefix + "cr_count",
+      Help:        "Number of existing guestbook custom resources",
+      ConstLabels: map[string]string{"controller": "guestbook"},
+      ExtraFields: map[string]string{
+        "StabilityLevel":    "DEPRECATED",
+        "DeprecatedVersion": "1.14.0",
+      },
+    },
+  )
 )
 
 func customResourceCollectorCallback() []operatormetrics.CollectionResult {
-    result := unstructured.UnstructuredList{}
-    err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
-    ...
+  result := unstructured.UnstructuredList{}
+  err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
+  ...
 
-    return []operatormetrics.CollectorResult{
-        {
-            Metric: crCount,
-            Labels: []string{"default"},
-            Value:  float64(len(result.Items)),
-        },
-    }
+  return []operatormetrics.CollectorResult{
+    {
+      Metric: crCount,
+      Labels: []string{"default"},
+      Value:  float64(len(result.Items)),
+    },
+  }
 }
 ```
 
 ### Prometheus Rules
 
 This section describes how to create and manage Prometheus rules to be
-reconciled by your Kubernetes Operator. Prometheus rules are a crucial part of
+reconciled by your Kubernetes Operator. Prometheus' rules are a crucial part of
 observability, enabling you to define alerts and record new time series based
 on existing metric data.
 
@@ -157,6 +170,16 @@ on existing metric data.
 Recording rules allow you to precompute frequently needed or computationally
 expensive expressions and save their result as a new set of time series.
 
+Unlike the Prometheus Golang client, this package provides an opinionated way to
+define recording rules. They are considered as first-class metrics and should be
+defined in a similar fashion as the metrics. By using the proposed approach, we
+improve code modularity and organization, and make versioning and evolution
+easier.
+
+Having strict rules for the definition of recording rules ensures enhanced
+metadata and documentation, improved user experience, and better integration
+with external tools.
+
 The file holding the recording rules related to the operator workload might look
 like this:
 
@@ -164,18 +187,18 @@ like this:
 // rules/operator_recording_rules.go
 
 var operatorRecordingRules = []operatorrules.RecordingRule{
-	...
-    {
-        MetricsOpts: operatormetrics.MetricOpts{
-            Name:        recordingRulesPrefix + "number_of_ready_pods",
-            Help:        "Number of ready guestbook operator pods in the cluster",
-            ExtraFields: map[string]string{"StabilityLevel": "ALPHA"},
-            ConstLabels: map[string]string{"controller": "guestbook"},
-        },
-        MetricType: operatormetrics.GaugeType,
-        Expr:       intstr.FromString(fmt.Sprintf("sum(up{namespace='%s', pod=~'guestbook-operator-.*', ready='true'}) or vector(0)", namespace)),
+  ...
+  {
+    MetricsOpts: operatormetrics.MetricOpts{
+      Name:        recordingRulesPrefix + "number_of_ready_pods",
+      Help:        "Number of ready guestbook operator pods in the cluster",
+      ExtraFields: map[string]string{"StabilityLevel": "ALPHA"},
+      ConstLabels: map[string]string{"controller": "guestbook"},
     },
-    ...
+    MetricType: operatormetrics.GaugeType,
+    Expr:       intstr.FromString(fmt.Sprintf("sum(up{namespace='%s', pod=~'guestbook-operator-.*', ready='true'}) or vector(0)", namespace)),
+  },
+  ...
 }
 ```
 
@@ -185,49 +208,50 @@ Alerts notify you when specific conditions are met, such as when a metric value
 exceeds a certain threshold or when a system component is unavailable. You can
 configure alerts using Prometheus alerting rules.
 
-The file holding the recording rules related to the operator workload might look
-like this:
-
 ```go
 // rules/operator_alerts.go
 
 
 var operatorAlerts = []promv1.Rule{
-	...
-    {
-        Alert: "GuestbookOperatorNotReady",
-        Expr:  intstr.FromString(fmt.Sprintf("%snumber_of_ready_pods < %snumber_of_pods", recordingRulesPrefix, recordingRulesPrefix)),
-        For:   "5m",
-        Annotations: map[string]string{
-            "summary":     "Guestbook operator is not ready",
-            "description": "Guestbook operator is not ready for more than 5 minutes.",
-        },
-        Labels: map[string]string{
-            "severity": "critical",
-        },
+  ...
+  {
+    Alert: "GuestbookOperatorNotReady",
+    Expr:  intstr.FromString(fmt.Sprintf("%snumber_of_ready_pods < %snumber_of_pods", recordingRulesPrefix, recordingRulesPrefix)),
+    For:   "5m",
+    Annotations: map[string]string{
+      "summary":     "Guestbook operator is not ready",
+      "description": "Guestbook operator is not ready for more than 5 minutes.",
     },
+    Labels: map[string]string{
+      "severity": "critical",
+    },
+  },
 }
 
 ```
 
 #### Setup
 
-The rules should be registered in the `init()` function with:
+Register your rules during the initialization phase with functions like
+`SetupRules()`. This centralizes rule management and ensures that all rules are
+consistently loaded and applied.
 
 ```go
 func SetupRules() *promv1.PrometheusRule {
-    err := operatorrules.RegisterRecordingRules(recordingRules...)
-    ...
-    
-    err = operatorrules.RegisterAlerts(alerts...)
-    ...
-    
-    prometheusRuleObj, err := operatorrules.BuildPrometheusRule(
-        "guestbook-operator-prometheus-rules",
-        "default",
-        map[string]string{"app": "guestbook-operator"},
-    )
-    ...
+  err := operatorrules.RegisterRecordingRules(recordingRules...)
+  ...
+  
+  err = operatorrules.RegisterAlerts(alerts...)
+  ...
+  
+  prometheusRuleObj, err := operatorrules.BuildPrometheusRule(
+    "guestbook-operator-prometheus-rules",          // name
+    "default",                                      // namespace
+    map[string]string{"app": "guestbook-operator"}, // labels
+  )
+  
+  // create PrometheusRule object
+  ...
 ```
 
 ### Documentation
@@ -241,20 +265,20 @@ documentation includes a default template that you can customize.
 For metrics and recording rules:
 ```go
 func main() {
-    metrics.SetupMetrics()
-    rules.SetupRules()
+  metrics.SetupMetrics()
+  rules.SetupRules()
 
-    docsString := docs.BuildMetricsDocs(metrics.ListMetrics(), rules.ListRecordingRules())
-    fmt.Println(docsString)
+  docsString := docs.BuildMetricsDocs(metrics.ListMetrics(), rules.ListRecordingRules())
+  fmt.Println(docsString)
 }
 ```
 
 For alerts:
 ```go
 func main() {
-    rules.SetupRules()
-    docsString := docs.BuildAlertsDocs(alerts.ListAlerts())
-    fmt.Println(docsString)
+  rules.SetupRules()
+  docsString := docs.BuildAlertsDocs(alerts.ListAlerts())
+  fmt.Println(docsString)
 }
 ```
 
