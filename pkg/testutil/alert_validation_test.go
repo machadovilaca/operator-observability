@@ -1,4 +1,4 @@
-package operatorrules
+package testutil
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -7,44 +7,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
-
-	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
 var _ = Describe("Validators", func() {
-	Context("RecordingRule Validation", func() {
-		It("should validate recording rule with valid input", func() {
-			recordingRule := &RecordingRule{
-				MetricsOpts: operatormetrics.MetricOpts{
-					Name: "ExampleRecordingRule",
-				},
-				Expr: intstr.FromString("sum(rate(http_requests_total[5m]))"),
-			}
-			err := recordingRuleValidator(recordingRule)
-			Expect(err).To(BeNil())
-		})
+	var linter *Linter
 
-		It("should return error if recording rule name is empty", func() {
-			recordingRule := &RecordingRule{
-				MetricsOpts: operatormetrics.MetricOpts{},
-				Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
-			}
-			err := recordingRuleValidator(recordingRule)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("recording rule must have a name"))
-		})
-
-		It("should return error if recording rule expression is empty", func() {
-			recordingRule := &RecordingRule{
-				MetricsOpts: operatormetrics.MetricOpts{
-					Name: "ExampleRecordingRule",
-				},
-				Expr: intstr.FromString(""),
-			}
-			err := recordingRuleValidator(recordingRule)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("recording rule must have an expression"))
-		})
+	BeforeEach(func() {
+		linter = New()
 	})
 
 	Context("Alert Validation", func() {
@@ -60,8 +29,8 @@ var _ = Describe("Validators", func() {
 					"description": "Example description",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).To(BeNil())
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(BeEmpty())
 		})
 
 		It("should return error if alert name is not in PascalCase format", func() {
@@ -76,9 +45,9 @@ var _ = Describe("Validators", func() {
 					"description": "Example description",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("alert must have a name in PascalCase format"))
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have a name in PascalCase format"))
 		})
 
 		It("should return error if alert expression is empty", func() {
@@ -93,9 +62,9 @@ var _ = Describe("Validators", func() {
 					"description": "Example description",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("alert must have an expression"))
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have an expression"))
 		})
 
 		It("should return error if severity label is missing or invalid", func() {
@@ -110,9 +79,9 @@ var _ = Describe("Validators", func() {
 					"description": "Example description",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("alert must have a severity label with value critical, warning, or info"))
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have a severity label with value critical, warning, or info"))
 		})
 
 		It("should return error if summary annotation is missing", func() {
@@ -126,9 +95,9 @@ var _ = Describe("Validators", func() {
 					"description": "Example description",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("alert must have a summary annotation"))
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have a summary annotation"))
 		})
 
 		It("should return error if description annotation is missing", func() {
@@ -142,9 +111,9 @@ var _ = Describe("Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			err := alertValidator(alert)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("alert must have a description annotation"))
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have a description annotation"))
 		})
 	})
 })

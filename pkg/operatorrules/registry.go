@@ -1,8 +1,6 @@
 package operatorrules
 
 import (
-	"fmt"
-
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 
@@ -23,10 +21,6 @@ func newRegistry() operatorRegisterer {
 func RegisterRecordingRules(recordingRules ...[]RecordingRule) error {
 	for _, recordingRuleList := range recordingRules {
 		for _, recordingRule := range recordingRuleList {
-			if err := recordingRuleValidator(&recordingRule); err != nil {
-				return fmt.Errorf("invalid recording rule %s: %w", recordingRule.MetricsOpts.Name, err)
-			}
-
 			operatorRegistry.registeredRecordingRules = append(operatorRegistry.registeredRecordingRules, recordingRule)
 		}
 	}
@@ -38,10 +32,6 @@ func RegisterRecordingRules(recordingRules ...[]RecordingRule) error {
 func RegisterAlerts(alerts ...[]promv1.Rule) error {
 	for _, alertList := range alerts {
 		for _, alert := range alertList {
-			if err := alertValidator(&alert); err != nil {
-				return fmt.Errorf("invalid alert %s: %w", alert.Alert, err)
-			}
-
 			operatorRegistry.registeredAlerts = append(operatorRegistry.registeredAlerts, alert)
 		}
 	}

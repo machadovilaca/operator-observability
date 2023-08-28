@@ -35,18 +35,6 @@ var _ = Describe("OperatorRules", func() {
 			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(ConsistOf(recordingRules))
 		})
-
-		It("should return an error for invalid recording rules", func() {
-			invalidRecordingRules := []RecordingRule{
-				{
-					Expr: intstr.FromString("sum(rate(http_requests_total[5m]))"),
-				},
-			}
-
-			err := RegisterRecordingRules(invalidRecordingRules)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("invalid recording rule"))
-		})
 	})
 
 	Context("Alert Registration", func() {
@@ -81,25 +69,6 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(ConsistOf(alerts))
-		})
-
-		It("should return an error for invalid alerts", func() {
-			invalidAlerts := []promv1.Rule{
-				{
-					Expr: intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
-					Labels: map[string]string{
-						"severity": "critical",
-					},
-					Annotations: map[string]string{
-						"summary":     "High request rate",
-						"description": "The request rate is too high.",
-					},
-				},
-			}
-
-			err := RegisterAlerts(invalidAlerts)
-			Expect(err).NotTo(BeNil())
-			Expect(err.Error()).To(ContainSubstring("invalid alert"))
 		})
 	})
 })
