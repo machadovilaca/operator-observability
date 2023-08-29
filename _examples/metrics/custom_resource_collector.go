@@ -19,16 +19,13 @@ func SetupCustomResourceCollector(k8sClient client.Client) {
 
 var (
 	customResourceCollector = operatormetrics.Collector{
-		Metrics: []operatormetrics.CollectorMetric{
-			{
-				Metric: crCount,
-				Labels: []string{"namespace"},
-			},
+		Metrics: []operatormetrics.Metric{
+			crCount,
 		},
 		CollectCallback: customResourceCollectorCallback,
 	}
 
-	crCount = operatormetrics.NewGauge(
+	crCount = operatormetrics.NewGaugeVec(
 		operatormetrics.MetricOpts{
 			Name:        metricPrefix + "cr_count",
 			Help:        "Number of existing guestbook custom resources",
@@ -38,6 +35,7 @@ var (
 				"DeprecatedVersion": "1.14.0",
 			},
 		},
+		[]string{"namespace"},
 	)
 )
 

@@ -25,7 +25,7 @@ var _ = Describe("Collector", func() {
 
 	Describe("Collect", func() {
 		BeforeEach(func() {
-			operatorRegistry.registeredCollectors = make(map[string]registeredCollector)
+			operatorRegistry.registeredCollectorMetrics = make(map[string]Metric)
 		})
 
 		It("should collect metrics from registered collectors", func() {
@@ -33,10 +33,7 @@ var _ = Describe("Collector", func() {
 			gauge := NewGauge(testGaugeOpts)
 
 			collector := Collector{
-				Metrics: []CollectorMetric{
-					{Metric: counter, Labels: nil},
-					{Metric: gauge, Labels: nil},
-				},
+				Metrics: []Metric{counter, gauge},
 				CollectCallback: func() []CollectorResult {
 					return []CollectorResult{
 						{Metric: counter, Labels: nil, Value: 5},
@@ -62,9 +59,7 @@ var _ = Describe("Collector", func() {
 			counter := NewCounter(testCounterOpts2)
 
 			collector := Collector{
-				Metrics: []CollectorMetric{
-					{Metric: counter, Labels: nil},
-				},
+				Metrics: []Metric{counter},
 				CollectCallback: func() []CollectorResult {
 					return []CollectorResult{
 						{Metric: counter, Labels: nil, Value: 5},

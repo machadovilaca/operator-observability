@@ -1,28 +1,16 @@
 package operatormetrics
 
-import (
-	"fmt"
-
-	"github.com/prometheus/client_golang/prometheus"
-)
-
 var operatorRegistry = newRegistry()
 
 type operatorRegisterer struct {
-	registeredMetrics    map[string]Metric
-	registeredCollectors map[string]registeredCollector
-}
-
-type registeredCollector struct {
-	desc      *prometheus.Desc
-	metric    Metric
-	valueType prometheus.ValueType
+	registeredMetrics          map[string]Metric
+	registeredCollectorMetrics map[string]Metric
 }
 
 func newRegistry() operatorRegisterer {
 	return operatorRegisterer{
-		registeredMetrics:    map[string]Metric{},
-		registeredCollectors: map[string]registeredCollector{},
+		registeredMetrics:          map[string]Metric{},
+		registeredCollectorMetrics: map[string]Metric{},
 	}
 }
 
@@ -44,40 +32,14 @@ func RegisterMetrics(allMetrics ...[]Metric) error {
 // RegisterCollector registers the collector with the Prometheus registry.
 func RegisterCollector(collectors ...Collector) error {
 	for _, collector := range collectors {
-		for _, metric := range collector.Metrics {
-			err := createCollectorMetric(metric)
-			if err != nil {
-				return err
-			}
-		}
-
 		err := Register(collector)
 		if err != nil {
 			return err
 		}
-	}
 
-	return nil
-}
-
-func createCollectorMetric(metric CollectorMetric) error {
-	opts := metric.GetOpts()
-	mType := metric.GetType()
-	var valueType prometheus.ValueType
-
-	switch mType {
-	case CounterType:
-		valueType = prometheus.CounterValue
-	case GaugeType:
-		valueType = prometheus.GaugeValue
-	default:
-		return fmt.Errorf("collector metric %q has invalid metric type: %q", opts.Name, mType)
-	}
-
-	operatorRegistry.registeredCollectors[opts.Name] = registeredCollector{
-		desc:      prometheus.NewDesc(opts.Name, opts.Help, metric.Labels, opts.ConstLabels),
-		metric:    metric,
-		valueType: valueType,
+		for _, cm := range collector.Metrics {
+			operatorRegistry.registeredCollectorMetrics[cm.GetOpts().Name] = cm
+		}
 	}
 
 	return nil
@@ -91,8 +53,8 @@ func ListMetrics() []Metric {
 		result = append(result, rm)
 	}
 
-	for _, rc := range operatorRegistry.registeredCollectors {
-		result = append(result, rc.metric)
+	for _, rc := range operatorRegistry.registeredCollectorMetrics {
+		result = append(result, rc)
 	}
 
 	return result
