@@ -1,5 +1,7 @@
 GOLANDCI_LINT_VERSION ?= v1.52.2
 
+all: sanity lint test
+
 sanity: goimport
 	go version
 	go fmt ./...

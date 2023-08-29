@@ -20,9 +20,7 @@ func newRegistry() operatorRegisterer {
 // RegisterRecordingRules registers the given recording rules.
 func RegisterRecordingRules(recordingRules ...[]RecordingRule) error {
 	for _, recordingRuleList := range recordingRules {
-		for _, recordingRule := range recordingRuleList {
-			operatorRegistry.registeredRecordingRules = append(operatorRegistry.registeredRecordingRules, recordingRule)
-		}
+		operatorRegistry.registeredRecordingRules = append(operatorRegistry.registeredRecordingRules, recordingRuleList...)
 	}
 
 	return nil
@@ -31,9 +29,7 @@ func RegisterRecordingRules(recordingRules ...[]RecordingRule) error {
 // RegisterAlerts registers the given alerts.
 func RegisterAlerts(alerts ...[]promv1.Rule) error {
 	for _, alertList := range alerts {
-		for _, alert := range alertList {
-			operatorRegistry.registeredAlerts = append(operatorRegistry.registeredAlerts, alert)
-		}
+		operatorRegistry.registeredAlerts = append(operatorRegistry.registeredAlerts, alertList...)
 	}
 
 	return nil
