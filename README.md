@@ -284,9 +284,12 @@ func main() {
 
 ## Documentation
 
+- Alert and Recording Rules validation: [docs/AlertsAndRecordingRulesValidation.md](docs/AlertsAndRecordingRulesValidation.md)
 - Use a Different Registry for metrics and collectors: [docs/UseDifferentRegistry.md](docs/UseDifferentRegistry.md)
 
 ## Next Steps
+
+- Add validation for metrics, and improve for recording rules
 
 - Add a declarative way to define metrics, recording rules, and alerts
 
