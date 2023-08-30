@@ -100,7 +100,13 @@ for metrics, these collectors come with a callback function triggered during
 metric collection. This function serves as the bridge to external systems,
 fetching data and setting metric values accordingly.
 
-In the Prometheus Golang client, collectors are free to create and push any new
+By using this approach, developers do not need to worry about the implementing
+the Prometheus Golang client collector interface with the Describe and Collect
+methods. This package takes care of that for them. Developers only need to
+define the list of metrics they want to create and a callback function to set
+the values of those metrics.
+
+Also, in the Prometheus Golang client, collectors are free to create and push any new
 metric. Most of the time, that leads to confusion and inconsistency. This
 package enforces a strict way to define collectors by explicitly specifying the
 metrics that the collector will push. This ensures that the created metrics are
@@ -121,16 +127,15 @@ func SetupCustomResourceCollector(k8sClient *kubernetes.Clientset) {
 
 var (
   customResourceCollector = operatormetrics.Collector{
-    Metrics: []operatormetrics.CollectorMetric{
-      {
-        Metric: crCount,
-        Labels: []string{"namespace"},
-      },
+    Metrics: []operatormetrics.Metric{
+      crCount, // NewGaugeVec
+      metric2, // NewCounter
+      metric3, // NewHistogram
     },
     CollectCallback: customResourceCollectorCallback,
   }
 
-  crCount = operatormetrics.NewGauge(
+  crCount = operatormetrics.NewGaugeVec(
     operatormetrics.MetricOpts{
       Name:        metricPrefix + "cr_count",
       Help:        "Number of existing guestbook custom resources",
@@ -140,20 +145,24 @@ var (
         "DeprecatedVersion": "1.14.0",
       },
     },
+    []string{"namespace"},
   )
+
+  ...
 )
 
-func customResourceCollectorCallback() []operatormetrics.CollectionResult {
+func customResourceCollectorCallback() []operatormetrics.CollectorResult {
   result := unstructured.UnstructuredList{}
   err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
   ...
 
+  crCountValue = float64(len(result.Items))
+  ...
+
   return []operatormetrics.CollectorResult{
-    {
-      Metric: crCount,
-      Labels: []string{"default"},
-      Value:  float64(len(result.Items)),
-    },
+    { Metric: crCount, Value: crCountValue, Labels: []string{"default"} },
+    { Metric: metric2, Value: metric2Value },
+    { Metric: metric3, Value: metric3Value },
   }
 }
 ```
