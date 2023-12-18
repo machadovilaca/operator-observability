@@ -15,16 +15,18 @@ var _ = Describe("Metrics", func() {
 			Help: "A test counter",
 		}
 		testCounterVecOpts = MetricOpts{
-			Name: "test_counter_vec",
-			Help: "A test counter vec",
+			Name:   "test_counter_vec",
+			Help:   "A test counter vec",
+			labels: []string{"label1", "label2"},
 		}
 		testGaugeOpts = MetricOpts{
 			Name: "test_gauge",
 			Help: "A test gauge",
 		}
 		testGaugeVecOpts = MetricOpts{
-			Name: "test_gauge_vec",
-			Help: "A test gauge vec",
+			Name:   "test_gauge_vec",
+			Help:   "A test gauge vec",
+			labels: []string{"label1", "label2"},
 		}
 		testHistogramOpts = MetricOpts{
 			Name: "test_histogram",
