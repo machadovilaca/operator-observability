@@ -25,7 +25,7 @@ var _ = Describe("Collector", func() {
 
 	Describe("Collect", func() {
 		BeforeEach(func() {
-			operatorRegistry.registeredCollectorMetrics = make(map[string]Metric)
+			CleanRegistry()
 		})
 
 		It("should collect metrics from registered collectors", func() {

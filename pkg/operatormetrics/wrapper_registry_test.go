@@ -3,8 +3,6 @@ package operatormetrics
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 var _ = Describe("Registry", func() {
@@ -21,8 +19,7 @@ var _ = Describe("Registry", func() {
 
 	Describe("RegisterMetrics", func() {
 		BeforeEach(func() {
-			prometheus.DefaultRegisterer = prometheus.NewRegistry()
-			operatorRegistry.registeredMetrics = make(map[string]Metric)
+			CleanRegistry()
 		})
 
 		It("should register metrics without error", func() {
@@ -52,8 +49,7 @@ var _ = Describe("Registry", func() {
 
 	Describe("ListMetrics", func() {
 		BeforeEach(func() {
-			prometheus.DefaultRegisterer = prometheus.NewRegistry()
-			operatorRegistry.registeredMetrics = make(map[string]Metric)
+			CleanRegistry()
 		})
 
 		It("should return a list of all registered metrics", func() {
