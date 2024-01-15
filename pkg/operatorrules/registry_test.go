@@ -71,4 +71,39 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredAlerts).To(ConsistOf(alerts))
 		})
 	})
+
+	Context("Clean Registry", func() {
+		It("should clean registry without error", func() {
+			recordingRules := []RecordingRule{
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+			}
+
+			alerts := []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+				},
+			}
+
+			err := RegisterRecordingRules(recordingRules)
+			Expect(err).To(BeNil())
+			registeredRules := ListRecordingRules()
+			Expect(registeredRules).To(ConsistOf(recordingRules))
+
+			err = RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+			registeredAlerts := ListAlerts()
+			Expect(registeredAlerts).To(ConsistOf(alerts))
+
+			CleanRegistry()
+
+			registeredRules = ListRecordingRules()
+			Expect(registeredRules).To(BeEmpty())
+			registeredAlerts = ListAlerts()
+			Expect(registeredAlerts).To(BeEmpty())
+		})
+	})
 })
