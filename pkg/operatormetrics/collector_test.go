@@ -25,7 +25,8 @@ var _ = Describe("Collector", func() {
 
 	Describe("Collect", func() {
 		BeforeEach(func() {
-			CleanRegistry()
+			err := CleanRegistry()
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should collect metrics from registered collectors", func() {

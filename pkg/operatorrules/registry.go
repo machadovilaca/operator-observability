@@ -59,6 +59,7 @@ func ListAlerts() []promv1.Rule {
 }
 
 // CleanRegistry removes all registered rules and alerts.
-func CleanRegistry() {
+func CleanRegistry() error {
 	operatorRegistry = newRegistry()
+	return nil
 }

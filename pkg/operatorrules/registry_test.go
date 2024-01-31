@@ -36,7 +36,7 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredRules).To(ConsistOf(recordingRules))
 		})
 
-		It("should not register recording rules with the same name in the same RegisterRecordingRules call", func() {
+		It("should replace recording rules with the same name in the same RegisterRecordingRules call", func() {
 			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
@@ -44,7 +44,7 @@ var _ = Describe("OperatorRules", func() {
 				},
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
-					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+					Expr:        intstr.FromString("sum(rate(http_requests_total[10m]))"),
 				},
 			}
 
@@ -53,9 +53,10 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(HaveLen(1))
+			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[10m]))"))
 		})
 
-		It("should not register recording rules with the same name in different RegisterRecordingRules calls", func() {
+		It("should replace recording rules with the same name in different RegisterRecordingRules calls", func() {
 			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
@@ -69,7 +70,7 @@ var _ = Describe("OperatorRules", func() {
 			recordingRules = []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
-					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+					Expr:        intstr.FromString("sum(rate(http_requests_total[10m]))"),
 				},
 			}
 
@@ -78,6 +79,7 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(HaveLen(1))
+			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[10m]))"))
 		})
 	})
 
@@ -115,7 +117,7 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredAlerts).To(ConsistOf(alerts))
 		})
 
-		It("should not register alerts with the same name in the same RegisterAlerts call", func() {
+		It("should replace alerts with the same name in the same RegisterAlerts call", func() {
 			alerts := []promv1.Rule{
 				{
 					Alert: "ExampleAlert1",
@@ -130,7 +132,7 @@ var _ = Describe("OperatorRules", func() {
 				},
 				{
 					Alert: "ExampleAlert1",
-					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 200"),
 					Labels: map[string]string{
 						"severity": "critical",
 					},
@@ -146,9 +148,10 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(HaveLen(1))
+			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
 
-		It("should not register alerts with the same name in different RegisterAlerts calls", func() {
+		It("should replace alerts with the same name in different RegisterAlerts calls", func() {
 			alerts := []promv1.Rule{
 				{
 					Alert: "ExampleAlert1",
@@ -169,7 +172,7 @@ var _ = Describe("OperatorRules", func() {
 			alerts = []promv1.Rule{
 				{
 					Alert: "ExampleAlert1",
-					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 200"),
 					Labels: map[string]string{
 						"severity": "critical",
 					},
@@ -185,6 +188,7 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(HaveLen(1))
+			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
 	})
 
@@ -214,7 +218,8 @@ var _ = Describe("OperatorRules", func() {
 			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(ConsistOf(alerts))
 
-			CleanRegistry()
+			err = CleanRegistry()
+			Expect(err).To(BeNil())
 
 			registeredRules = ListRecordingRules()
 			Expect(registeredRules).To(BeEmpty())
