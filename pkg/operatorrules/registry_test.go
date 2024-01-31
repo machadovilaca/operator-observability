@@ -35,6 +35,50 @@ var _ = Describe("OperatorRules", func() {
 			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(ConsistOf(recordingRules))
 		})
+
+		It("should not register recording rules with the same name in the same RegisterRecordingRules call", func() {
+			recordingRules := []RecordingRule{
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+			}
+
+			err := RegisterRecordingRules(recordingRules)
+			Expect(err).To(BeNil())
+
+			registeredRules := ListRecordingRules()
+			Expect(registeredRules).To(HaveLen(1))
+		})
+
+		It("should not register recording rules with the same name in different RegisterRecordingRules calls", func() {
+			recordingRules := []RecordingRule{
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+			}
+
+			err := RegisterRecordingRules(recordingRules)
+			Expect(err).To(BeNil())
+
+			recordingRules = []RecordingRule{
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+			}
+
+			err = RegisterRecordingRules(recordingRules)
+			Expect(err).To(BeNil())
+
+			registeredRules := ListRecordingRules()
+			Expect(registeredRules).To(HaveLen(1))
+		})
 	})
 
 	Context("Alert Registration", func() {
@@ -69,6 +113,78 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(ConsistOf(alerts))
+		})
+
+		It("should not register alerts with the same name in the same RegisterAlerts call", func() {
+			alerts := []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Labels: map[string]string{
+						"severity": "critical",
+					},
+					Annotations: map[string]string{
+						"summary":     "High request rate",
+						"description": "The request rate is too high.",
+					},
+				},
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Labels: map[string]string{
+						"severity": "critical",
+					},
+					Annotations: map[string]string{
+						"summary":     "High request rate",
+						"description": "The request rate is too high.",
+					},
+				},
+			}
+
+			err := RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+
+			registeredAlerts := ListAlerts()
+			Expect(registeredAlerts).To(HaveLen(1))
+		})
+
+		It("should not register alerts with the same name in different RegisterAlerts calls", func() {
+			alerts := []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Labels: map[string]string{
+						"severity": "critical",
+					},
+					Annotations: map[string]string{
+						"summary":     "High request rate",
+						"description": "The request rate is too high.",
+					},
+				},
+			}
+
+			err := RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+
+			alerts = []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+					Labels: map[string]string{
+						"severity": "critical",
+					},
+					Annotations: map[string]string{
+						"summary":     "High request rate",
+						"description": "The request rate is too high.",
+					},
+				},
+			}
+
+			err = RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+
+			registeredAlerts := ListAlerts()
+			Expect(registeredAlerts).To(HaveLen(1))
 		})
 	})
 
