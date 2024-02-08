@@ -67,6 +67,18 @@ var _ = Describe("Registry", func() {
 			Expect(metrics).To(ContainElement(counter))
 			Expect(metrics).To(ContainElement(gauge))
 		})
+
+		It("should sort the list of metrics by name", func() {
+			counter := NewCounter(testCounterOpts)
+			gauge := NewGauge(testGaugeOpts)
+
+			err := RegisterMetrics([]Metric{gauge, counter})
+			Expect(err).NotTo(HaveOccurred())
+
+			metrics := ListMetrics()
+			Expect(metrics).To(HaveLen(2))
+			Expect(metrics).To(Equal([]Metric{counter, gauge}))
+		})
 	})
 
 	Describe("RegisterCollector", func() {
