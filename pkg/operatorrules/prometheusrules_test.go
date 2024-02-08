@@ -23,6 +23,15 @@ var _ = Describe("PrometheusRules", func() {
 				MetricType: operatormetrics.GaugeType,
 				Expr:       intstr.FromString("sum(up{namespace='default', pod=~'guestbook-operator-.*'}) or vector(0)"),
 			},
+			{
+				MetricsOpts: operatormetrics.MetricOpts{
+					Name:        "a_test_counter",
+					Help:        "A test counter",
+					ConstLabels: map[string]string{"controller": "guestbook"},
+				},
+				MetricType: operatormetrics.CounterType,
+				Expr:       intstr.FromString("sum(rate(http_requests_total[5m]))"),
+			},
 		}
 
 		var alerts = []promv1.Rule{
@@ -35,6 +44,17 @@ var _ = Describe("PrometheusRules", func() {
 				},
 				Labels: map[string]string{
 					"severity": "critical",
+				},
+			},
+			{
+				Alert: "ATestAlert",
+				Expr:  intstr.FromString("test_counter > 10"),
+				Annotations: map[string]string{
+					"summary":     "Test alert",
+					"description": "Test alert description",
+				},
+				Labels: map[string]string{
+					"severity": "warning",
 				},
 			},
 		}
@@ -64,14 +84,50 @@ var _ = Describe("PrometheusRules", func() {
 			Expect(rules.Spec.Groups).To(HaveLen(2))
 
 			Expect(rules.Spec.Groups[0].Name).To(Equal("recordingRules.rules"))
-			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(1))
-			Expect(rules.Spec.Groups[0].Rules[0].Record).To(Equal("number_of_pods"))
-			Expect(rules.Spec.Groups[0].Rules[0].Expr).To(Equal(intstr.FromString("sum(up{namespace='default', pod=~'guestbook-operator-.*'}) or vector(0)")))
+			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(2))
+			Expect(rules.Spec.Groups[0].Rules[1].Record).To(Equal("number_of_pods"))
+			Expect(rules.Spec.Groups[0].Rules[1].Expr).To(Equal(intstr.FromString("sum(up{namespace='default', pod=~'guestbook-operator-.*'}) or vector(0)")))
 
 			Expect(rules.Spec.Groups[1].Name).To(Equal("alerts.rules"))
-			Expect(rules.Spec.Groups[1].Rules).To(HaveLen(1))
-			Expect(rules.Spec.Groups[1].Rules[0].Alert).To(Equal("GuestbookOperatorDown"))
-			Expect(rules.Spec.Groups[1].Rules[0].Expr).To(Equal(intstr.FromString("number_of_pods == 0")))
+			Expect(rules.Spec.Groups[1].Rules).To(HaveLen(2))
+			Expect(rules.Spec.Groups[1].Rules[1].Alert).To(Equal("GuestbookOperatorDown"))
+			Expect(rules.Spec.Groups[1].Rules[1].Expr).To(Equal(intstr.FromString("number_of_pods == 0")))
+		})
+
+		It("should sort the recording rules of alerts by name ('Record')", func() {
+			rules, err := BuildPrometheusRule(
+				"guestbook-operator-prometheus-rules",
+				"default",
+				map[string]string{"app": "guestbook-operator"},
+			)
+
+			Expect(err).To(BeNil())
+			Expect(rules).NotTo(BeNil())
+
+			Expect(rules.Spec.Groups).To(HaveLen(2))
+
+			Expect(rules.Spec.Groups[0].Name).To(Equal("recordingRules.rules"))
+			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(2))
+			Expect(rules.Spec.Groups[0].Rules[0].Record).To(Equal("a_test_counter"))
+			Expect(rules.Spec.Groups[0].Rules[1].Record).To(Equal("number_of_pods"))
+		})
+
+		It("should sort the list of alerts by name ('Alert')", func() {
+			rules, err := BuildPrometheusRule(
+				"guestbook-operator-prometheus-rules",
+				"default",
+				map[string]string{"app": "guestbook-operator"},
+			)
+
+			Expect(err).To(BeNil())
+			Expect(rules).NotTo(BeNil())
+
+			Expect(rules.Spec.Groups).To(HaveLen(2))
+
+			Expect(rules.Spec.Groups[1].Name).To(Equal("alerts.rules"))
+			Expect(rules.Spec.Groups[1].Rules).To(HaveLen(2))
+			Expect(rules.Spec.Groups[1].Rules[0].Alert).To(Equal("ATestAlert"))
+			Expect(rules.Spec.Groups[1].Rules[1].Alert).To(Equal("GuestbookOperatorDown"))
 		})
 	})
 })
