@@ -32,7 +32,7 @@ var _ = Describe("Metrics", func() {
 			Name: "test_histogram",
 			Help: "A test histogram",
 		}
-		testHistogramHistogramOpts = HistogramOpts{
+		testHistogramHistogramOpts = prometheus.HistogramOpts{
 			Buckets: prometheus.LinearBuckets(0, 10, 10),
 		}
 		testHistogramVecOpts = MetricOpts{
@@ -43,7 +43,7 @@ var _ = Describe("Metrics", func() {
 			Name: "test_summary",
 			Help: "A test summary",
 		}
-		testSummarySummaryOpts = SummaryOpts{
+		testSummarySummaryOpts = prometheus.SummaryOpts{
 			Objectives: map[float64]float64{0.1: 0.1, 0.2: 0.2, 0.3: 0.3, 0.4: 0.4, 0.5: 0.5},
 		}
 		testSummaryVecOpts = MetricOpts{
@@ -88,6 +88,7 @@ var _ = Describe("Metrics", func() {
 			Expect(histogram).NotTo(BeNil())
 			Expect(histogram.GetOpts()).To(Equal(testHistogramOpts))
 			Expect(histogram.GetType()).To(Equal(HistogramType))
+			Expect(histogram.GetHistogramOpts()).To(Equal(testHistogramHistogramOpts))
 		})
 
 		It("should create a new HistogramVec with the provided options and labels", func() {
@@ -96,6 +97,7 @@ var _ = Describe("Metrics", func() {
 			Expect(histogramVec).NotTo(BeNil())
 			Expect(histogramVec.GetOpts()).To(Equal(testHistogramVecOpts))
 			Expect(histogramVec.GetType()).To(Equal(HistogramVecType))
+			Expect(histogramVec.GetHistogramOpts()).To(Equal(testHistogramHistogramOpts))
 		})
 
 		It("should create a new Summary with the provided options", func() {
@@ -103,6 +105,7 @@ var _ = Describe("Metrics", func() {
 			Expect(summary).NotTo(BeNil())
 			Expect(summary.GetOpts()).To(Equal(testSummaryOpts))
 			Expect(summary.GetType()).To(Equal(SummaryType))
+			Expect(summary.GetSummaryOpts()).To(Equal(testSummarySummaryOpts))
 		})
 
 		It("should create a new SummaryVec with the provided options and labels", func() {
@@ -111,6 +114,7 @@ var _ = Describe("Metrics", func() {
 			Expect(summaryVec).NotTo(BeNil())
 			Expect(summaryVec.GetOpts()).To(Equal(testSummaryVecOpts))
 			Expect(summaryVec.GetType()).To(Equal(SummaryVecType))
+			Expect(summaryVec.GetSummaryOpts()).To(Equal(testSummarySummaryOpts))
 		})
 	})
 
