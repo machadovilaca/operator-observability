@@ -46,7 +46,7 @@ func validateAlertHasSeverityLabel(alert *promv1.Rule) []Problem {
 	var result []Problem
 
 	severity := alert.Labels["severity"]
-	if severity == "" || (severity != "critical" && severity != "warning" && severity != "info") {
+	if !isValidSeverity(severity) {
 		result = append(result, Problem{
 			ResourceName: alert.Alert,
 			Description:  "alert must have a severity label with value critical, warning, or info",
@@ -88,4 +88,8 @@ func isPascalCase(s string) bool {
 	pascalCasePattern := `^[A-Z][a-zA-Z0-9]*(?:[A-Z][a-zA-Z0-9]*)*$`
 	pascalCaseRegex := regexp.MustCompile(pascalCasePattern)
 	return pascalCaseRegex.MatchString(s)
+}
+
+func isValidSeverity(severity string) bool {
+	return severity == "critical" || severity == "warning" || severity == "info"
 }

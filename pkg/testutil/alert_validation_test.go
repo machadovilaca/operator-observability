@@ -4,12 +4,11 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"k8s.io/apimachinery/pkg/util/intstr"
-
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-var _ = Describe("Validators", func() {
+var _ = Describe("Default Validators", func() {
 	var linter *Linter
 
 	BeforeEach(func() {
