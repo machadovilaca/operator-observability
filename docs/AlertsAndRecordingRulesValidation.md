@@ -53,6 +53,9 @@ type AlertValidation = func(alert *promv1.Rule) []Problem
 func (linter *Linter) AddCustomAlertValidations(validations ...AlertValidation)
 ```
 
+You can define your own alert validation rules or use some custom validations exported and
+available for usage in [pkg/testutil/alert_custom_validations.go](../pkg/testutil/alert_custom_validations.go).
+
 ### Linting
 
 `LintRecordingRules(recordingRules []operatorrules.RecordingRule) []Problem`:
