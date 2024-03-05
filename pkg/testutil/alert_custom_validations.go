@@ -17,6 +17,20 @@ func ValidateAlertNameLength(alert *promv1.Rule) []Problem {
 	return result
 }
 
+func ValidateAlertHasDescriptionAnnotation(alert *promv1.Rule) []Problem {
+	var result []Problem
+
+	description := alert.Annotations["description"]
+	if description == "" {
+		result = append(result, Problem{
+			ResourceName: alert.Alert,
+			Description:  "alert must have a description annotation",
+		})
+	}
+
+	return result
+}
+
 func ValidateAlertRunbookURLAnnotation(alert *promv1.Rule) []Problem {
 	var result []Problem
 

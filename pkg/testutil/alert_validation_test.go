@@ -98,21 +98,5 @@ var _ = Describe("Default Validators", func() {
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert must have a summary annotation"))
 		})
-
-		It("should return error if description annotation is missing", func() {
-			alert := &promv1.Rule{
-				Alert: "ExampleAlert",
-				Expr:  intstr.FromString("sum(rate(http_requests_total[5m]))"),
-				Labels: map[string]string{
-					"severity": "critical",
-				},
-				Annotations: map[string]string{
-					"summary": "Example summary",
-				},
-			}
-			problems := linter.LintAlert(alert)
-			Expect(problems).To(HaveLen(1))
-			Expect(problems[0].Description).To(ContainSubstring("alert must have a description annotation"))
-		})
 	})
 })

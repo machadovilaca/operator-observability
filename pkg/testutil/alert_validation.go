@@ -13,7 +13,6 @@ var defaultAlertValidations = []AlertValidation{
 	validateAlertHasExpression,
 	validateAlertHasSeverityLabel,
 	validateAlertHasSummaryAnnotation,
-	validateAlertHasDescriptionAnnotation,
 }
 
 func validateAlertName(alert *promv1.Rule) []Problem {
@@ -64,20 +63,6 @@ func validateAlertHasSummaryAnnotation(alert *promv1.Rule) []Problem {
 		result = append(result, Problem{
 			ResourceName: alert.Alert,
 			Description:  "alert must have a summary annotation",
-		})
-	}
-
-	return result
-}
-
-func validateAlertHasDescriptionAnnotation(alert *promv1.Rule) []Problem {
-	var result []Problem
-
-	description := alert.Annotations["description"]
-	if description == "" {
-		result = append(result, Problem{
-			ResourceName: alert.Alert,
-			Description:  "alert must have a description annotation",
 		})
 	}
 
