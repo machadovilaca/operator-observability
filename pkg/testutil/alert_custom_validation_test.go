@@ -32,8 +32,8 @@ var _ = Describe("Custom Validators", func() {
 					"runbook_url": "example/runbook/url",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertNameLength, ValidateAlertRunbookURLAnnotation,
-				ValidateAlertHealthImpactLabel, ValidateAlertPartOfAndComponentLabels)
+			linter.AddCustomAlertValidations(ValidateAlertNameLength, ValidateAlertHasDescriptionAnnotation,
+				ValidateAlertRunbookURLAnnotation, ValidateAlertHealthImpactLabel, ValidateAlertPartOfAndComponentLabels)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(BeEmpty())
 		})
@@ -46,14 +46,30 @@ var _ = Describe("Custom Validators", func() {
 					"severity": "critical",
 				},
 				Annotations: map[string]string{
-					"summary":     "Example summary",
-					"description": "Example description",
+					"summary": "Example summary",
 				},
 			}
 			linter.AddCustomAlertValidations(ValidateAlertNameLength)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert name exceeds 50 characters"))
+		})
+
+		It("should return error if description custom validation was added and is missing", func() {
+			alert := &promv1.Rule{
+				Alert: "ExampleAlert",
+				Expr:  intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				Labels: map[string]string{
+					"severity": "critical",
+				},
+				Annotations: map[string]string{
+					"summary": "Example summary",
+				},
+			}
+			linter.AddCustomAlertValidations(ValidateAlertHasDescriptionAnnotation)
+			problems := linter.LintAlert(alert)
+			Expect(problems).To(HaveLen(1))
+			Expect(problems[0].Description).To(ContainSubstring("alert must have a description annotation"))
 		})
 
 		It("should return error if runbook_url custom validation was added and is missing", func() {
@@ -64,8 +80,7 @@ var _ = Describe("Custom Validators", func() {
 					"severity": "critical",
 				},
 				Annotations: map[string]string{
-					"summary":     "Example summary",
-					"description": "Example description",
+					"summary": "Example summary",
 				},
 			}
 			linter.AddCustomAlertValidations(ValidateAlertRunbookURLAnnotation)
@@ -83,8 +98,7 @@ var _ = Describe("Custom Validators", func() {
 					"operator_health_impact": "invalid_operator_health_impact",
 				},
 				Annotations: map[string]string{
-					"summary":     "Example summary",
-					"description": "Example description",
+					"summary": "Example summary",
 				},
 			}
 			linter.AddCustomAlertValidations(ValidateAlertHealthImpactLabel)
@@ -101,8 +115,7 @@ var _ = Describe("Custom Validators", func() {
 					"severity": "critical",
 				},
 				Annotations: map[string]string{
-					"summary":     "Example summary",
-					"description": "Example description",
+					"summary": "Example summary",
 				},
 			}
 			linter.AddCustomAlertValidations(ValidateAlertPartOfAndComponentLabels)
