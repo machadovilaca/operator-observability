@@ -1,9 +1,8 @@
 package operatorrules
 
 import (
-	"cmp"
 	"fmt"
-	"slices"
+	"sort"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -66,8 +65,8 @@ func buildRecordingRulesRules() []promv1.Rule {
 		})
 	}
 
-	slices.SortFunc(rules, func(a, b promv1.Rule) int {
-		return cmp.Compare(a.Record, b.Record)
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].Record < rules[j].Record
 	})
 
 	return rules

@@ -1,10 +1,8 @@
 package operatorrules
 
 import (
-	"cmp"
-	"slices"
-
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	"sort"
 )
 
 var operatorRegistry = newRegistry()
@@ -50,8 +48,8 @@ func ListRecordingRules() []RecordingRule {
 		rules = append(rules, rule)
 	}
 
-	slices.SortFunc(rules, func(a, b RecordingRule) int {
-		return cmp.Compare(a.GetOpts().Name, b.GetOpts().Name)
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i].GetOpts().Name < rules[j].GetOpts().Name
 	})
 
 	return rules
@@ -64,8 +62,8 @@ func ListAlerts() []promv1.Rule {
 		alerts = append(alerts, alert)
 	}
 
-	slices.SortFunc(alerts, func(a, b promv1.Rule) int {
-		return cmp.Compare(a.Alert, b.Alert)
+	sort.Slice(alerts, func(i, j int) bool {
+		return alerts[i].Alert < alerts[j].Alert
 	})
 
 	return alerts

@@ -1,6 +1,6 @@
 module github.com/machadovilaca/operator-observability/examples
 
-go 1.21
+go 1.19
 
 require (
 	github.com/machadovilaca/operator-observability v0.0.0-00010101000000-000000000000

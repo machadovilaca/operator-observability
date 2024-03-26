@@ -1,9 +1,8 @@
 package operatormetrics
 
 import (
-	"cmp"
 	"fmt"
-	"slices"
+	"sort"
 )
 
 var operatorRegistry = newRegistry()
@@ -75,8 +74,8 @@ func ListMetrics() []Metric {
 		result = append(result, rc)
 	}
 
-	slices.SortFunc(result, func(a, b Metric) int {
-		return cmp.Compare(a.GetOpts().Name, b.GetOpts().Name)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].GetOpts().Name < result[j].GetOpts().Name
 	})
 
 	return result
