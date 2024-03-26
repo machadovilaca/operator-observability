@@ -73,5 +73,36 @@ var _ = Describe("Collector", func() {
 
 			Expect(ch).NotTo(Receive())
 		})
+
+		It("should collect metrics with const labels added on collection time", func() {
+			counter := NewCounter(testCounterOpts)
+
+			collector := Collector{
+				Metrics: []Metric{counter},
+				CollectCallback: func() []CollectorResult {
+					return []CollectorResult{
+						{
+							Metric: counter,
+							Labels: nil,
+							ConstLabels: map[string]string{
+								"important_info": "xpto",
+							},
+							Value: 5,
+						},
+					}
+				},
+			}
+
+			err := RegisterCollector(collector)
+			Expect(err).NotTo(HaveOccurred())
+
+			ch := make(chan prometheus.Metric, 1)
+			go collector.Collect(ch)
+
+			metricCounter := <-ch
+
+			Expect(metricCounter.Desc().String()).To(ContainSubstring(testCounterOpts.Name))
+			Expect(metricCounter.Desc().String()).To(ContainSubstring("constLabels: {important_info=\"xpto\"}"))
+		})
 	})
 })
