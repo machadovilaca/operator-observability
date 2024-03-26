@@ -62,21 +62,14 @@ type RuleGroup struct {
 	// +kubebuilder:validation:MinLength=1
 	Name string `json:"name"`
 	// Interval determines how often rules in the group are evaluated.
-	// +optional
-	Interval *Duration `json:"interval,omitempty"`
+	Interval Duration `json:"interval,omitempty"`
 	// List of alerting and recording rules.
-	// +optional
-	Rules []Rule `json:"rules,omitempty"`
+	Rules []Rule `json:"rules"`
 	// PartialResponseStrategy is only used by ThanosRuler and will
 	// be ignored by Prometheus instances.
 	// More info: https://github.com/thanos-io/thanos/blob/main/docs/components/rule.md#partial-response
 	// +kubebuilder:validation:Pattern="^(?i)(abort|warn)?$"
 	PartialResponseStrategy string `json:"partial_response_strategy,omitempty"`
-	// Limit the number of alerts an alerting rule and series a recording
-	// rule can produce.
-	// Limit is supported starting with Prometheus >= 2.31 and Thanos Ruler >= 0.24.
-	// +optional
-	Limit *int `json:"limit,omitempty"`
 }
 
 // Rule describes an alerting or recording rule
@@ -92,11 +85,7 @@ type Rule struct {
 	// PromQL expression to evaluate.
 	Expr intstr.IntOrString `json:"expr"`
 	// Alerts are considered firing once they have been returned for this long.
-	// +optional
-	For *Duration `json:"for,omitempty"`
-	// KeepFiringFor defines how long an alert will continue firing after the condition that triggered it has cleared.
-	// +optional
-	KeepFiringFor *NonEmptyDuration `json:"keep_firing_for,omitempty"`
+	For Duration `json:"for,omitempty"`
 	// Labels to add or overwrite.
 	Labels map[string]string `json:"labels,omitempty"`
 	// Annotations to add to each alert.

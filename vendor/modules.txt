@@ -85,7 +85,7 @@ github.com/onsi/gomega/matchers/support/goraph/util
 github.com/onsi/gomega/types
 # github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 ## explicit
-# github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.68.0
+# github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.64.1
 ## explicit; go 1.17
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1

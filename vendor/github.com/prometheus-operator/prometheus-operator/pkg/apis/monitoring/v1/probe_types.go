@@ -61,7 +61,7 @@ type ProbeSpec struct {
 	// If not specified Prometheus' global scrape interval is used.
 	Interval Duration `json:"interval,omitempty"`
 	// Timeout for scraping metrics from the Prometheus exporter.
-	// If not specified, the Prometheus global scrape timeout is used.
+	// If not specified, the Prometheus global scrape interval is used.
 	ScrapeTimeout Duration `json:"scrapeTimeout,omitempty"`
 	// TLS configuration to use when scraping the endpoint.
 	TLSConfig *ProbeTLSConfig `json:"tlsConfig,omitempty"`
@@ -79,30 +79,18 @@ type ProbeSpec struct {
 	// Authorization section for this endpoint
 	Authorization *SafeAuthorization `json:"authorization,omitempty"`
 	// SampleLimit defines per-scrape limit on number of scraped samples that will be accepted.
-	// +optional
-	SampleLimit *uint64 `json:"sampleLimit,omitempty"`
+	SampleLimit uint64 `json:"sampleLimit,omitempty"`
 	// TargetLimit defines a limit on the number of scraped targets that will be accepted.
-	// +optional
-	TargetLimit *uint64 `json:"targetLimit,omitempty"`
+	TargetLimit uint64 `json:"targetLimit,omitempty"`
 	// Per-scrape limit on number of labels that will be accepted for a sample.
 	// Only valid in Prometheus versions 2.27.0 and newer.
-	// +optional
-	LabelLimit *uint64 `json:"labelLimit,omitempty"`
+	LabelLimit uint64 `json:"labelLimit,omitempty"`
 	// Per-scrape limit on length of labels name that will be accepted for a sample.
 	// Only valid in Prometheus versions 2.27.0 and newer.
-	// +optional
-	LabelNameLengthLimit *uint64 `json:"labelNameLengthLimit,omitempty"`
+	LabelNameLengthLimit uint64 `json:"labelNameLengthLimit,omitempty"`
 	// Per-scrape limit on length of labels value that will be accepted for a sample.
 	// Only valid in Prometheus versions 2.27.0 and newer.
-	// +optional
-	LabelValueLengthLimit *uint64 `json:"labelValueLengthLimit,omitempty"`
-	// Per-scrape limit on the number of targets dropped by relabeling
-	// that will be kept in memory. 0 means no limit.
-	//
-	// It requires Prometheus >= v2.47.0.
-	//
-	// +optional
-	KeepDroppedTargets *uint64 `json:"keepDroppedTargets,omitempty"`
+	LabelValueLengthLimit uint64 `json:"labelValueLengthLimit,omitempty"`
 }
 
 // ProbeTargets defines how to discover the probed targets.
@@ -178,9 +166,7 @@ type ProberSpec struct {
 	// Mandatory URL of the prober.
 	URL string `json:"url"`
 	// HTTP scheme to use for scraping.
-	// `http` and `https` are the expected values unless you rewrite the `__scheme__` label via relabeling.
-	// If empty, Prometheus uses the default value `http`.
-	// +kubebuilder:validation:Enum=http;https
+	// Defaults to `http`.
 	Scheme string `json:"scheme,omitempty"`
 	// Path to collect metrics from.
 	// Defaults to `/probe`.
