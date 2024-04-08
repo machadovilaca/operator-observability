@@ -36,7 +36,7 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredRules).To(ConsistOf(recordingRules))
 		})
 
-		It("should replace recording rules with the same name in the same RegisterRecordingRules call", func() {
+		It("should replace recording rule with the same name and expression", func() {
 			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
@@ -44,7 +44,7 @@ var _ = Describe("OperatorRules", func() {
 				},
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
-					Expr:        intstr.FromString("sum(rate(http_requests_total[10m]))"),
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
 				},
 			}
 
@@ -53,10 +53,10 @@ var _ = Describe("OperatorRules", func() {
 
 			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(HaveLen(1))
-			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[10m]))"))
+			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[5m]))"))
 		})
 
-		It("should replace recording rules with the same name in different RegisterRecordingRules calls", func() {
+		It("should create 2 recording rules when registered with the same name but different expressions", func() {
 			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
@@ -78,8 +78,9 @@ var _ = Describe("OperatorRules", func() {
 			Expect(err).To(BeNil())
 
 			registeredRules := ListRecordingRules()
-			Expect(registeredRules).To(HaveLen(1))
+			Expect(registeredRules).To(HaveLen(2))
 			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[10m]))"))
+			Expect(registeredRules[1].Expr.String()).To(Equal("sum(rate(http_requests_total[5m]))"))
 		})
 	})
 
