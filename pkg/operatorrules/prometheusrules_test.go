@@ -32,6 +32,15 @@ var _ = Describe("PrometheusRules", func() {
 				MetricType: operatormetrics.CounterType,
 				Expr:       intstr.FromString("sum(rate(http_requests_total[5m]))"),
 			},
+			{
+				MetricsOpts: operatormetrics.MetricOpts{
+					Name:        "a_test_counter",
+					Help:        "another rule to check the order",
+					ConstLabels: map[string]string{"controller": "guestbook"},
+				},
+				MetricType: operatormetrics.CounterType,
+				Expr:       intstr.FromString("sum(rate(http_requests_total[20m]))"),
+			},
 		}
 
 		var alerts = []promv1.Rule{
@@ -84,9 +93,9 @@ var _ = Describe("PrometheusRules", func() {
 			Expect(rules.Spec.Groups).To(HaveLen(2))
 
 			Expect(rules.Spec.Groups[0].Name).To(Equal("recordingRules.rules"))
-			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(2))
-			Expect(rules.Spec.Groups[0].Rules[1].Record).To(Equal("number_of_pods"))
-			Expect(rules.Spec.Groups[0].Rules[1].Expr).To(Equal(intstr.FromString("sum(up{namespace='default', pod=~'guestbook-operator-.*'}) or vector(0)")))
+			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(3))
+			Expect(rules.Spec.Groups[0].Rules[2].Record).To(Equal("number_of_pods"))
+			Expect(rules.Spec.Groups[0].Rules[2].Expr).To(Equal(intstr.FromString("sum(up{namespace='default', pod=~'guestbook-operator-.*'}) or vector(0)")))
 
 			Expect(rules.Spec.Groups[1].Name).To(Equal("alerts.rules"))
 			Expect(rules.Spec.Groups[1].Rules).To(HaveLen(2))
@@ -107,9 +116,12 @@ var _ = Describe("PrometheusRules", func() {
 			Expect(rules.Spec.Groups).To(HaveLen(2))
 
 			Expect(rules.Spec.Groups[0].Name).To(Equal("recordingRules.rules"))
-			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(2))
+			Expect(rules.Spec.Groups[0].Rules).To(HaveLen(3))
 			Expect(rules.Spec.Groups[0].Rules[0].Record).To(Equal("a_test_counter"))
-			Expect(rules.Spec.Groups[0].Rules[1].Record).To(Equal("number_of_pods"))
+			Expect(rules.Spec.Groups[0].Rules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[20m]))"))
+			Expect(rules.Spec.Groups[0].Rules[1].Record).To(Equal("a_test_counter"))
+			Expect(rules.Spec.Groups[0].Rules[1].Expr.String()).To(Equal("sum(rate(http_requests_total[5m]))"))
+			Expect(rules.Spec.Groups[0].Rules[2].Record).To(Equal("number_of_pods"))
 		})
 
 		It("should sort the list of alerts by name ('Alert')", func() {
