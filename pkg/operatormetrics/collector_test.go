@@ -1,10 +1,14 @@
 package operatormetrics
 
 import (
+	"time"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/prometheus/client_golang/prometheus"
+	io_prometheus_client "github.com/prometheus/client_model/go"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ = Describe("Collector", func() {
@@ -103,6 +107,35 @@ var _ = Describe("Collector", func() {
 
 			Expect(metricCounter.Desc().String()).To(ContainSubstring(testCounterOpts.Name))
 			Expect(metricCounter.Desc().String()).To(ContainSubstring("constLabels: {important_info=\"xpto\"}"))
+		})
+
+		It("should collect metrics with custom timestamps", func() {
+			counter := NewCounter(testCounterOpts)
+
+			collector := Collector{
+				Metrics: []Metric{counter},
+				CollectCallback: func() []CollectorResult {
+					return []CollectorResult{
+						{Metric: counter, Labels: nil, Value: 5, Timestamp: time.UnixMilli(1000)},
+					}
+				},
+			}
+
+			err := RegisterCollector(collector)
+			Expect(err).NotTo(HaveOccurred())
+
+			ch := make(chan prometheus.Metric, 1)
+			go collector.Collect(ch)
+
+			metricCounter := <-ch
+
+			Expect(metricCounter.Desc().String()).To(ContainSubstring(testCounterOpts.Name))
+
+			dto := &io_prometheus_client.Metric{}
+			err = metricCounter.Write(dto)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(dto.TimestampMs).To(Equal(proto.Int64(1000)))
 		})
 	})
 })

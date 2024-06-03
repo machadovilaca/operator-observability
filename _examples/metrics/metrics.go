@@ -15,6 +15,7 @@ var (
 	// Add your custom collectors here
 	collectors = []operatormetrics.Collector{
 		customResourceCollector,
+		perSecondDataCollector,
 	}
 )
 

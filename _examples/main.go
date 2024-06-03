@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/machadovilaca/operator-observability/examples/metrics"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/machadovilaca/operator-observability/examples/metrics"
 )
 
 func main() {
@@ -16,9 +17,16 @@ func main() {
 	go http.ListenAndServe(":2112", nil)
 
 	fmt.Println("Server started on port 2112")
+
+	v := 0.0
+
 	for {
 		metrics.IncrementReconcileCountMetric()
 		metrics.IncrementReconcileActionMetric("sleep")
-		time.Sleep(10 * time.Second)
+
+		metrics.SetPerSecondData("source1", v)
+		v = v + 1
+
+		time.Sleep(1 * time.Second)
 	}
 }
