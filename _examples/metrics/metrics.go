@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	runtimemetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
-
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
@@ -23,7 +21,7 @@ var (
 func SetupMetrics() {
 	// When using controller-runtime metrics, you must register the metrics
 	// with the controller-runtime metrics registry
-	operatormetrics.Register = runtimemetrics.Registry.Register
+	// operatormetrics.Register = runtimemetrics.Registry.Register
 
 	// Add your custom metrics here
 	err := operatormetrics.RegisterMetrics(metrics...)
