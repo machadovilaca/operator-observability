@@ -41,6 +41,11 @@ var (
 
 func customResourceCollectorCallback() []operatormetrics.CollectorResult {
 	result := unstructured.UnstructuredList{}
+
+	if collectorK8sClient == nil {
+		return []operatormetrics.CollectorResult{}
+	}
+
 	err := collectorK8sClient.List(context.TODO(), &result, client.InNamespace("default"))
 	if err != nil {
 		return []operatormetrics.CollectorResult{}
