@@ -15,6 +15,11 @@ var _ = Describe("Registry", func() {
 			Name: "test_gauge",
 			Help: "A test gauge",
 		}
+		testGaugeVecOpts = MetricOpts{
+			Name:   "test_gauge_vec",
+			Help:   "A test gauge vec",
+			labels: []string{"label1", "label2"},
+		}
 	)
 
 	Describe("RegisterMetrics", func() {
@@ -46,6 +51,35 @@ var _ = Describe("Registry", func() {
 
 			Expect(operatorRegistry.registeredMetrics).To(HaveLen(1))
 			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testCounterOpts.Name))
+		})
+	})
+
+	Describe("UnregisterMetrics", func() {
+		BeforeEach(func() {
+			err := CleanRegistry()
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("should unregister metrics without error", func() {
+			counter := NewCounter(testCounterOpts)
+			gauge := NewGauge(testGaugeOpts)
+
+			labels := []string{"label1", "label2"}
+			gaugeVec := NewGaugeVec(testGaugeVecOpts, labels)
+
+			err := RegisterMetrics([]Metric{counter, gauge, gaugeVec})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(operatorRegistry.registeredMetrics).To(HaveLen(3))
+			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testCounterOpts.Name))
+			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeOpts.Name))
+			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeVecOpts.Name))
+
+			err = UnregisterMetrics([]Metric{counter, gauge})
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(operatorRegistry.registeredMetrics).To(HaveLen(1))
+			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeVecOpts.Name))
 		})
 	})
 
