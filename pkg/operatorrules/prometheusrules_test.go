@@ -1,4 +1,4 @@
-package operatorrules
+package operatorrules_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -9,11 +9,14 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
+	"github.com/machadovilaca/operator-observability/pkg/operatorrules"
 )
 
 var _ = Describe("PrometheusRules", func() {
 	Context("Building resource", func() {
-		var recordingRules = []RecordingRule{
+		var or *operatorrules.Registry
+
+		var recordingRules = []operatorrules.RecordingRule{
 			{
 				MetricsOpts: operatormetrics.MetricOpts{
 					Name:        "number_of_pods",
@@ -69,17 +72,17 @@ var _ = Describe("PrometheusRules", func() {
 		}
 
 		BeforeEach(func() {
-			operatorRegistry = newRegistry()
+			or = operatorrules.NewRegistry()
 
-			err := RegisterRecordingRules(recordingRules)
+			err := or.RegisterRecordingRules(recordingRules)
 			Expect(err).To(Not(HaveOccurred()))
 
-			err = RegisterAlerts(alerts)
+			err = or.RegisterAlerts(alerts)
 			Expect(err).To(Not(HaveOccurred()))
 		})
 
 		It("should build PrometheusRule with valid input", func() {
-			rules, err := BuildPrometheusRule(
+			rules, err := or.BuildPrometheusRule(
 				"guestbook-operator-prometheus-rules",
 				"default",
 				map[string]string{"app": "guestbook-operator"},
@@ -104,7 +107,7 @@ var _ = Describe("PrometheusRules", func() {
 		})
 
 		It("should sort the recording rules of alerts by name ('Record')", func() {
-			rules, err := BuildPrometheusRule(
+			rules, err := or.BuildPrometheusRule(
 				"guestbook-operator-prometheus-rules",
 				"default",
 				map[string]string{"app": "guestbook-operator"},
@@ -125,7 +128,7 @@ var _ = Describe("PrometheusRules", func() {
 		})
 
 		It("should sort the list of alerts by name ('Alert')", func() {
-			rules, err := BuildPrometheusRule(
+			rules, err := or.BuildPrometheusRule(
 				"guestbook-operator-prometheus-rules",
 				"default",
 				map[string]string{"app": "guestbook-operator"},
