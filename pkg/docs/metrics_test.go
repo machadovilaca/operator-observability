@@ -1,4 +1,4 @@
-package docs
+package docs_test
 
 import (
 	"strings"
@@ -8,6 +8,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/util/intstr"
 
+	"github.com/machadovilaca/operator-observability/pkg/docs"
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 	"github.com/machadovilaca/operator-observability/pkg/operatorrules"
 )
@@ -67,7 +68,7 @@ var metrics = []operatormetrics.Metric{
 var _ = Describe("Metrics Documentation", func() {
 	Context("Metrics and Recording Rules", func() {
 		It("Checks that metrics and recording rules are documented", func() {
-			docMetrics := BuildMetricsDocs(metrics, recordingRules)
+			docMetrics := docs.BuildMetricsDocs(metrics, recordingRules)
 			Expect(docMetrics).To(ContainSubstring("CExampleRecordingRule"))
 			Expect(docMetrics).To(ContainSubstring("AExampleRecordingRule"))
 			Expect(docMetrics).To(ContainSubstring("BExampleGauge"))
@@ -75,7 +76,7 @@ var _ = Describe("Metrics Documentation", func() {
 		})
 
 		It("Checks that metrics and recording rules are documented with custom template", func() {
-			templateDocMetrics := BuildMetricsDocsWithCustomTemplate(metrics, recordingRules, tpl)
+			templateDocMetrics := docs.BuildMetricsDocsWithCustomTemplate(metrics, recordingRules, tpl)
 			Expect(templateDocMetrics).To(ContainSubstring("metrics-doc-test-title"))
 			Expect(templateDocMetrics).To(ContainSubstring("metrics-doc-test-body"))
 			Expect(templateDocMetrics).To(ContainSubstring("CExampleRecordingRule"))
@@ -85,7 +86,7 @@ var _ = Describe("Metrics Documentation", func() {
 		})
 
 		It("Checks that the metrics doc is sorted by metrics and recording rules name", func() {
-			templateDocMetrics := BuildMetricsDocsWithCustomTemplate(metrics, recordingRules, tpl)
+			templateDocMetrics := docs.BuildMetricsDocsWithCustomTemplate(metrics, recordingRules, tpl)
 			indexOfA := strings.Index(templateDocMetrics, "AExampleRecordingRule")
 			indexOfB := strings.Index(templateDocMetrics, "BExampleGauge")
 			indexOfC := strings.Index(templateDocMetrics, "CExampleRecordingRule")
@@ -97,7 +98,7 @@ var _ = Describe("Metrics Documentation", func() {
 		})
 
 		It("Checks that metrics are documented in the right format", func() {
-			templateDocMetrics := BuildMetricsDocsWithCustomTemplate(metrics, nil, tpl)
+			templateDocMetrics := docs.BuildMetricsDocsWithCustomTemplate(metrics, nil, tpl)
 			Expect(templateDocMetrics).To(ContainSubstring("BExampleGauge\ntest doc gauge. Type: Gauge."))
 			Expect(templateDocMetrics).To(ContainSubstring("[ALPHA in 1.4.0] test doc counterVec. Type: Counter."))
 		})
