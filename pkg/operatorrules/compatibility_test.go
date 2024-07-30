@@ -1,4 +1,4 @@
-package operatorrules_test
+package operatorrules
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -9,19 +9,16 @@ import (
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
-	"github.com/machadovilaca/operator-observability/pkg/operatorrules"
 )
 
 var _ = Describe("OperatorRules", func() {
-	var or *operatorrules.Registry
-
 	BeforeEach(func() {
-		or = operatorrules.NewRegistry()
+		operatorRegistry = NewRegistry()
 	})
 
 	Context("RecordingRule Registration", func() {
 		It("should register recording rules without error", func() {
-			recordingRules := []operatorrules.RecordingRule{
+			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
 					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
@@ -32,15 +29,15 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err := or.RegisterRecordingRules(recordingRules)
+			err := RegisterRecordingRules(recordingRules)
 			Expect(err).To(BeNil())
 
-			registeredRules := or.ListRecordingRules()
+			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(ConsistOf(recordingRules))
 		})
 
 		It("should replace recording rule with the same name and expression", func() {
-			recordingRules := []operatorrules.RecordingRule{
+			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
 					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
@@ -51,36 +48,36 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err := or.RegisterRecordingRules(recordingRules)
+			err := RegisterRecordingRules(recordingRules)
 			Expect(err).To(BeNil())
 
-			registeredRules := or.ListRecordingRules()
+			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(HaveLen(1))
 			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[5m]))"))
 		})
 
 		It("should create 2 recording rules when registered with the same name but different expressions", func() {
-			recordingRules := []operatorrules.RecordingRule{
+			recordingRules := []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
 					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
 				},
 			}
 
-			err := or.RegisterRecordingRules(recordingRules)
+			err := RegisterRecordingRules(recordingRules)
 			Expect(err).To(BeNil())
 
-			recordingRules = []operatorrules.RecordingRule{
+			recordingRules = []RecordingRule{
 				{
 					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
 					Expr:        intstr.FromString("sum(rate(http_requests_total[10m]))"),
 				},
 			}
 
-			err = or.RegisterRecordingRules(recordingRules)
+			err = RegisterRecordingRules(recordingRules)
 			Expect(err).To(BeNil())
 
-			registeredRules := or.ListRecordingRules()
+			registeredRules := ListRecordingRules()
 			Expect(registeredRules).To(HaveLen(2))
 			Expect(registeredRules[0].Expr.String()).To(Equal("sum(rate(http_requests_total[10m]))"))
 			Expect(registeredRules[1].Expr.String()).To(Equal("sum(rate(http_requests_total[5m]))"))
@@ -114,10 +111,10 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err := or.RegisterAlerts(alerts)
+			err := RegisterAlerts(alerts)
 			Expect(err).To(BeNil())
 
-			registeredAlerts := or.ListAlerts()
+			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(ConsistOf(alerts))
 		})
 
@@ -147,10 +144,10 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err := or.RegisterAlerts(alerts)
+			err := RegisterAlerts(alerts)
 			Expect(err).To(BeNil())
 
-			registeredAlerts := or.ListAlerts()
+			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(HaveLen(1))
 			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
@@ -170,7 +167,7 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err := or.RegisterAlerts(alerts)
+			err := RegisterAlerts(alerts)
 			Expect(err).To(BeNil())
 
 			alerts = []promv1.Rule{
@@ -187,12 +184,48 @@ var _ = Describe("OperatorRules", func() {
 				},
 			}
 
-			err = or.RegisterAlerts(alerts)
+			err = RegisterAlerts(alerts)
 			Expect(err).To(BeNil())
 
-			registeredAlerts := or.ListAlerts()
+			registeredAlerts := ListAlerts()
 			Expect(registeredAlerts).To(HaveLen(1))
 			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
+		})
+	})
+
+	Context("Clean Registry", func() {
+		It("should clean registry without error", func() {
+			recordingRules := []RecordingRule{
+				{
+					MetricsOpts: operatormetrics.MetricOpts{Name: "ExampleRecordingRule1"},
+					Expr:        intstr.FromString("sum(rate(http_requests_total[5m]))"),
+				},
+			}
+
+			alerts := []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+				},
+			}
+
+			err := RegisterRecordingRules(recordingRules)
+			Expect(err).To(BeNil())
+			registeredRules := ListRecordingRules()
+			Expect(registeredRules).To(ConsistOf(recordingRules))
+
+			err = RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+			registeredAlerts := ListAlerts()
+			Expect(registeredAlerts).To(ConsistOf(alerts))
+
+			err = CleanRegistry()
+			Expect(err).To(BeNil())
+
+			registeredRules = ListRecordingRules()
+			Expect(registeredRules).To(BeEmpty())
+			registeredAlerts = ListAlerts()
+			Expect(registeredAlerts).To(BeEmpty())
 		})
 	})
 })

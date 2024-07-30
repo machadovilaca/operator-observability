@@ -12,6 +12,8 @@ const (
 )
 
 var (
+	operatorRegistry = operatorrules.NewRegistry()
+
 	// Add your custom recording rules here
 	recordingRules = [][]operatorrules.RecordingRule{
 		operatorRecordingRules,
@@ -24,19 +26,19 @@ var (
 )
 
 func SetupRules() {
-	err := operatorrules.RegisterRecordingRules(recordingRules...)
+	err := operatorRegistry.RegisterRecordingRules(recordingRules...)
 	if err != nil {
 		panic(err)
 	}
 
-	err = operatorrules.RegisterAlerts(alerts...)
+	err = operatorRegistry.RegisterAlerts(alerts...)
 	if err != nil {
 		panic(err)
 	}
 }
 
 func BuildPrometheusRule() (*promv1.PrometheusRule, error) {
-	rules, err := operatorrules.BuildPrometheusRule(
+	rules, err := operatorRegistry.BuildPrometheusRule(
 		"guestbook-operator-prometheus-rules",
 		"default",
 		map[string]string{"app": "guestbook-operator"},
@@ -49,9 +51,9 @@ func BuildPrometheusRule() (*promv1.PrometheusRule, error) {
 }
 
 func ListRecordingRules() []operatorrules.RecordingRule {
-	return operatorrules.ListRecordingRules()
+	return operatorRegistry.ListRecordingRules()
 }
 
 func ListAlerts() []promv1.Rule {
-	return operatorrules.ListAlerts()
+	return operatorRegistry.ListAlerts()
 }

@@ -1,4 +1,4 @@
-package operatorrules
+package operatorrules_test
 
 import (
 	"testing"
