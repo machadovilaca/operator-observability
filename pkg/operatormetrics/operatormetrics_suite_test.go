@@ -1,4 +1,4 @@
-package operatormetrics
+package operatormetrics_test
 
 import (
 	"testing"

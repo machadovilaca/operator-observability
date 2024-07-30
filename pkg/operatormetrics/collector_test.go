@@ -1,4 +1,4 @@
-package operatormetrics
+package operatormetrics_test
 
 import (
 	"time"
@@ -9,19 +9,21 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
 var _ = Describe("Collector", func() {
 	var (
-		testCounterOpts = MetricOpts{
+		testCounterOpts = operatormetrics.MetricOpts{
 			Name: "collector_test_counter",
 			Help: "A test counter",
 		}
-		testGaugeOpts = MetricOpts{
+		testGaugeOpts = operatormetrics.MetricOpts{
 			Name: "collector_test_gauge",
 			Help: "A test gauge",
 		}
-		testCounterOpts2 = MetricOpts{
+		testCounterOpts2 = operatormetrics.MetricOpts{
 			Name: "collector_test_counter_2",
 			Help: "A test counter",
 		}
@@ -29,25 +31,25 @@ var _ = Describe("Collector", func() {
 
 	Describe("Collect", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should collect metrics from registered collectors", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
-			collector := Collector{
-				Metrics: []Metric{counter, gauge},
-				CollectCallback: func() []CollectorResult {
-					return []CollectorResult{
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{counter, gauge},
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{
 						{Metric: counter, Labels: nil, Value: 5},
 						{Metric: gauge, Labels: nil, Value: 10},
 					}
 				},
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
 			ch := make(chan prometheus.Metric, 2)
@@ -61,12 +63,12 @@ var _ = Describe("Collector", func() {
 		})
 
 		It("should skip unregistered collectors", func() {
-			counter := NewCounter(testCounterOpts2)
+			counter := operatormetrics.NewCounter(testCounterOpts2)
 
-			collector := Collector{
-				Metrics: []Metric{counter},
-				CollectCallback: func() []CollectorResult {
-					return []CollectorResult{
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{counter},
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{
 						{Metric: counter, Labels: nil, Value: 5},
 					}
 				},
@@ -79,12 +81,12 @@ var _ = Describe("Collector", func() {
 		})
 
 		It("should collect metrics with const labels added on collection time", func() {
-			counter := NewCounter(testCounterOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
 
-			collector := Collector{
-				Metrics: []Metric{counter},
-				CollectCallback: func() []CollectorResult {
-					return []CollectorResult{
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{counter},
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{
 						{
 							Metric: counter,
 							Labels: nil,
@@ -97,7 +99,7 @@ var _ = Describe("Collector", func() {
 				},
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
 			ch := make(chan prometheus.Metric, 1)
@@ -110,18 +112,18 @@ var _ = Describe("Collector", func() {
 		})
 
 		It("should collect metrics with custom timestamps", func() {
-			counter := NewCounter(testCounterOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
 
-			collector := Collector{
-				Metrics: []Metric{counter},
-				CollectCallback: func() []CollectorResult {
-					return []CollectorResult{
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{counter},
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{
 						{Metric: counter, Labels: nil, Value: 5, Timestamp: time.UnixMilli(1000)},
 					}
 				},
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
 			ch := make(chan prometheus.Metric, 1)

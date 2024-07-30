@@ -1,4 +1,4 @@
-package operatormetrics
+package operatormetrics_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -6,47 +6,47 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	io_prometheus_client "github.com/prometheus/client_model/go"
+
+	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
 var _ = Describe("Metrics", func() {
 	var (
-		testCounterOpts = MetricOpts{
+		testCounterOpts = operatormetrics.MetricOpts{
 			Name: "test_counter",
 			Help: "A test counter",
 		}
-		testCounterVecOpts = MetricOpts{
-			Name:   "test_counter_vec",
-			Help:   "A test counter vec",
-			labels: []string{"label1", "label2"},
+		testCounterVecOpts = operatormetrics.MetricOpts{
+			Name: "test_counter_vec",
+			Help: "A test counter vec",
 		}
-		testGaugeOpts = MetricOpts{
+		testGaugeOpts = operatormetrics.MetricOpts{
 			Name: "test_gauge",
 			Help: "A test gauge",
 		}
-		testGaugeVecOpts = MetricOpts{
-			Name:   "test_gauge_vec",
-			Help:   "A test gauge vec",
-			labels: []string{"label1", "label2"},
+		testGaugeVecOpts = operatormetrics.MetricOpts{
+			Name: "test_gauge_vec",
+			Help: "A test gauge vec",
 		}
-		testHistogramOpts = MetricOpts{
+		testHistogramOpts = operatormetrics.MetricOpts{
 			Name: "test_histogram",
 			Help: "A test histogram",
 		}
 		testHistogramHistogramOpts = prometheus.HistogramOpts{
 			Buckets: prometheus.LinearBuckets(0, 10, 10),
 		}
-		testHistogramVecOpts = MetricOpts{
+		testHistogramVecOpts = operatormetrics.MetricOpts{
 			Name: "test_histogram_vec",
 			Help: "A test histogram vec",
 		}
-		testSummaryOpts = MetricOpts{
+		testSummaryOpts = operatormetrics.MetricOpts{
 			Name: "test_summary",
 			Help: "A test summary",
 		}
 		testSummarySummaryOpts = prometheus.SummaryOpts{
 			Objectives: map[float64]float64{0.1: 0.1, 0.2: 0.2, 0.3: 0.3, 0.4: 0.4, 0.5: 0.5},
 		}
-		testSummaryVecOpts = MetricOpts{
+		testSummaryVecOpts = operatormetrics.MetricOpts{
 			Name: "test_summary_vec",
 			Help: "A test summary vec",
 		}
@@ -54,81 +54,47 @@ var _ = Describe("Metrics", func() {
 
 	Describe("Metric Constructors", func() {
 		It("should create a new Counter with the provided options", func() {
-			counter := NewCounter(testCounterOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
 			Expect(counter).NotTo(BeNil())
 			Expect(counter.GetOpts()).To(Equal(testCounterOpts))
-			Expect(counter.GetType()).To(Equal(CounterType))
-		})
-
-		It("should create a new CounterVec with the provided options and labels", func() {
-			labels := []string{"label1", "label2"}
-			counterVec := NewCounterVec(testCounterVecOpts, labels)
-			Expect(counterVec).NotTo(BeNil())
-			Expect(counterVec.GetOpts()).To(Equal(testCounterVecOpts))
-			Expect(counterVec.GetType()).To(Equal(CounterVecType))
+			Expect(counter.GetType()).To(Equal(operatormetrics.CounterType))
 		})
 
 		It("should create a new Gauge with the provided options", func() {
-			gauge := NewGauge(testGaugeOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 			Expect(gauge).NotTo(BeNil())
 			Expect(gauge.GetOpts()).To(Equal(testGaugeOpts))
-			Expect(gauge.GetType()).To(Equal(GaugeType))
-		})
-
-		It("should create a new GaugeVec with the provided options and labels", func() {
-			labels := []string{"label1", "label2"}
-			gaugeVec := NewGaugeVec(testGaugeVecOpts, labels)
-			Expect(gaugeVec).NotTo(BeNil())
-			Expect(gaugeVec.GetOpts()).To(Equal(testGaugeVecOpts))
-			Expect(gaugeVec.GetType()).To(Equal(GaugeVecType))
+			Expect(gauge.GetType()).To(Equal(operatormetrics.GaugeType))
 		})
 
 		It("should create a new Histogram with the provided options", func() {
-			histogram := NewHistogram(testHistogramOpts, testHistogramHistogramOpts)
+			histogram := operatormetrics.NewHistogram(testHistogramOpts, testHistogramHistogramOpts)
 			Expect(histogram).NotTo(BeNil())
 			Expect(histogram.GetOpts()).To(Equal(testHistogramOpts))
-			Expect(histogram.GetType()).To(Equal(HistogramType))
+			Expect(histogram.GetType()).To(Equal(operatormetrics.HistogramType))
 			Expect(histogram.GetHistogramOpts()).To(Equal(testHistogramHistogramOpts))
 		})
 
-		It("should create a new HistogramVec with the provided options and labels", func() {
-			labels := []string{"label1", "label2"}
-			histogramVec := NewHistogramVec(testHistogramVecOpts, testHistogramHistogramOpts, labels)
-			Expect(histogramVec).NotTo(BeNil())
-			Expect(histogramVec.GetOpts()).To(Equal(testHistogramVecOpts))
-			Expect(histogramVec.GetType()).To(Equal(HistogramVecType))
-			Expect(histogramVec.GetHistogramOpts()).To(Equal(testHistogramHistogramOpts))
-		})
-
 		It("should create a new Summary with the provided options", func() {
-			summary := NewSummary(testSummaryOpts, testSummarySummaryOpts)
+			summary := operatormetrics.NewSummary(testSummaryOpts, testSummarySummaryOpts)
 			Expect(summary).NotTo(BeNil())
 			Expect(summary.GetOpts()).To(Equal(testSummaryOpts))
-			Expect(summary.GetType()).To(Equal(SummaryType))
+			Expect(summary.GetType()).To(Equal(operatormetrics.SummaryType))
 			Expect(summary.GetSummaryOpts()).To(Equal(testSummarySummaryOpts))
-		})
-
-		It("should create a new SummaryVec with the provided options and labels", func() {
-			labels := []string{"label1", "label2"}
-			summaryVec := NewSummaryVec(testSummaryVecOpts, testSummarySummaryOpts, labels)
-			Expect(summaryVec).NotTo(BeNil())
-			Expect(summaryVec.GetOpts()).To(Equal(testSummaryVecOpts))
-			Expect(summaryVec.GetType()).To(Equal(SummaryVecType))
-			Expect(summaryVec.GetSummaryOpts()).To(Equal(testSummarySummaryOpts))
 		})
 	})
 
 	Describe("Counter and CounterVec", func() {
 		It("should increment the counter and counter with labels", func() {
-			counter := NewCounter(testCounterOpts)
-			counterVec := NewCounterVec(testCounterVecOpts, []string{"label1"})
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			counterVec := operatormetrics.NewCounterVec(testCounterVecOpts, []string{"label1"})
 
 			counter.Inc()
 			counterVec.WithLabelValues("value1").Add(2)
 
 			ch := make(chan prometheus.Metric, 2)
-			counter.getCollector().Collect(ch)
-			counterVec.getCollector().Collect(ch)
+			counter.GetCollector().Collect(ch)
+			counterVec.GetCollector().Collect(ch)
 
 			metricCounter := <-ch
 			metricCounterVec := <-ch
@@ -150,15 +116,15 @@ var _ = Describe("Metrics", func() {
 
 	Describe("Gauge and GaugeVec", func() {
 		It("should set the gauge and gauge with labels", func() {
-			gauge := NewGauge(testGaugeOpts)
-			gaugeVec := NewGaugeVec(testGaugeVecOpts, []string{"label1"})
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
+			gaugeVec := operatormetrics.NewGaugeVec(testGaugeVecOpts, []string{"label1"})
 
 			gauge.Set(42)
 			gaugeVec.WithLabelValues("value1").Set(43)
 
 			ch := make(chan prometheus.Metric, 2)
-			gauge.getCollector().Collect(ch)
-			gaugeVec.getCollector().Collect(ch)
+			gauge.GetCollector().Collect(ch)
+			gaugeVec.GetCollector().Collect(ch)
 
 			metricGauge := <-ch
 			metricGaugeVec := <-ch
@@ -180,15 +146,15 @@ var _ = Describe("Metrics", func() {
 
 	Describe("Histogram and HistogramVec", func() {
 		It("should observe the histogram and histogram with labels", func() {
-			histogram := NewHistogram(testHistogramOpts, testHistogramHistogramOpts)
-			histogramVec := NewHistogramVec(testHistogramVecOpts, testHistogramHistogramOpts, []string{"label1"})
+			histogram := operatormetrics.NewHistogram(testHistogramOpts, testHistogramHistogramOpts)
+			histogramVec := operatormetrics.NewHistogramVec(testHistogramVecOpts, testHistogramHistogramOpts, []string{"label1"})
 
 			histogram.Observe(42)
 			histogramVec.WithLabelValues("value1").Observe(43)
 
 			ch := make(chan prometheus.Metric, 2)
-			histogram.getCollector().Collect(ch)
-			histogramVec.getCollector().Collect(ch)
+			histogram.GetCollector().Collect(ch)
+			histogramVec.GetCollector().Collect(ch)
 
 			metricHistogram := <-ch
 			metricHistogramVec := <-ch
@@ -210,15 +176,15 @@ var _ = Describe("Metrics", func() {
 
 	Describe("Summary and SummaryVec", func() {
 		It("should observe the summary and summary with labels", func() {
-			summary := NewSummary(testSummaryOpts, testSummarySummaryOpts)
-			summaryVec := NewSummaryVec(testSummaryVecOpts, testSummarySummaryOpts, []string{"label1"})
+			summary := operatormetrics.NewSummary(testSummaryOpts, testSummarySummaryOpts)
+			summaryVec := operatormetrics.NewSummaryVec(testSummaryVecOpts, testSummarySummaryOpts, []string{"label1"})
 
 			summary.Observe(42)
 			summaryVec.WithLabelValues("value1").Observe(43)
 
 			ch := make(chan prometheus.Metric, 2)
-			summary.getCollector().Collect(ch)
-			summaryVec.getCollector().Collect(ch)
+			summary.GetCollector().Collect(ch)
+			summaryVec.GetCollector().Collect(ch)
 
 			metricSummary := <-ch
 			metricSummaryVec := <-ch

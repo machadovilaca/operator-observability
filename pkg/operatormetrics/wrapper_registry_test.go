@@ -1,201 +1,207 @@
-package operatormetrics
+package operatormetrics_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 )
 
 var _ = Describe("Registry", func() {
 	var (
-		testCounterOpts = MetricOpts{
+		testCounterOpts = operatormetrics.MetricOpts{
 			Name: "test_counter",
 			Help: "A test counter",
 		}
-		testGaugeOpts = MetricOpts{
+		testGaugeOpts = operatormetrics.MetricOpts{
 			Name: "test_gauge",
 			Help: "A test gauge",
 		}
-		testGaugeVecOpts = MetricOpts{
-			Name:   "test_gauge_vec",
-			Help:   "A test gauge vec",
-			labels: []string{"label1", "label2"},
+		testGaugeVecOpts = operatormetrics.MetricOpts{
+			Name: "test_gauge_vec",
+			Help: "A test gauge vec",
 		}
 	)
 
 	Describe("RegisterMetrics", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should register metrics without error", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
-			err := RegisterMetrics([]Metric{counter, gauge})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter, gauge})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredMetrics).To(HaveLen(2))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testCounterOpts.Name))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeOpts.Name))
+			metrics := operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(2))
+			Expect(metrics).To(ContainElement(counter))
+			Expect(metrics).To(ContainElement(gauge))
 		})
 
 		It("should replace metrics with the same name in different RegisterMetrics call", func() {
-			counter := NewCounter(testCounterOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
 
-			err := RegisterMetrics([]Metric{counter})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter})
 			Expect(err).NotTo(HaveOccurred())
 
-			err = RegisterMetrics([]Metric{counter})
+			err = operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredMetrics).To(HaveLen(1))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testCounterOpts.Name))
+			metrics := operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(1))
+			Expect(metrics).To(ContainElement(counter))
 		})
 	})
 
 	Describe("UnregisterMetrics", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should unregister metrics without error", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
 			labels := []string{"label1", "label2"}
-			gaugeVec := NewGaugeVec(testGaugeVecOpts, labels)
+			gaugeVec := operatormetrics.NewGaugeVec(testGaugeVecOpts, labels)
 
-			err := RegisterMetrics([]Metric{counter, gauge, gaugeVec})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter, gauge, gaugeVec})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredMetrics).To(HaveLen(3))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testCounterOpts.Name))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeOpts.Name))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeVecOpts.Name))
+			metrics := operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(3))
+			Expect(metrics).To(ContainElement(counter))
+			Expect(metrics).To(ContainElement(gauge))
+			Expect(metrics).To(ContainElement(gaugeVec))
 
-			err = UnregisterMetrics([]Metric{counter, gauge})
+			err = operatormetrics.UnregisterMetrics([]operatormetrics.Metric{counter, gauge})
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredMetrics).To(HaveLen(1))
-			Expect(operatorRegistry.registeredMetrics).To(HaveKey(testGaugeVecOpts.Name))
+			metrics = operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(1))
+			Expect(metrics).To(ContainElement(gaugeVec))
 		})
 	})
 
 	Describe("ListMetrics", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should return a list of all registered metrics", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
-			err := RegisterMetrics([]Metric{counter, gauge})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter, gauge})
 			Expect(err).NotTo(HaveOccurred())
 
-			metrics := ListMetrics()
+			metrics := operatormetrics.ListMetrics()
 			Expect(metrics).To(HaveLen(2))
 			Expect(metrics).To(ContainElement(counter))
 			Expect(metrics).To(ContainElement(gauge))
 		})
 
 		It("should sort the list of metrics by name", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
-			err := RegisterMetrics([]Metric{gauge, counter})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{gauge, counter})
 			Expect(err).NotTo(HaveOccurred())
 
-			metrics := ListMetrics()
+			metrics := operatormetrics.ListMetrics()
 			Expect(metrics).To(HaveLen(2))
-			Expect(metrics).To(Equal([]Metric{counter, gauge}))
+			Expect(metrics).To(Equal([]operatormetrics.Metric{counter, gauge}))
 		})
 	})
 
 	Describe("RegisterCollector", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		var customResourceCollectorCallback = func() []CollectorResult {
-			return []CollectorResult{}
+		var customResourceCollectorCallback = func() []operatormetrics.CollectorResult {
+			return []operatormetrics.CollectorResult{}
 		}
 
 		It("should register collectors without error", func() {
-			collector := Collector{
-				Metrics: []Metric{
-					NewCounter(testCounterOpts),
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{
+					operatormetrics.NewCounter(testCounterOpts),
 				},
 				CollectCallback: customResourceCollectorCallback,
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredCollectorMetrics).To(HaveLen(1))
-			Expect(operatorRegistry.registeredCollectorMetrics).To(HaveKey(testCounterOpts.Name))
+			metrics := operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(1))
+			Expect(metrics).To(ContainElement(collector.Metrics[0]))
 		})
 
 		It("should replace metrics with the same name in different RegisterCollector call", func() {
-			collector := Collector{
-				Metrics: []Metric{
-					NewCounter(testCounterOpts),
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{
+					operatormetrics.NewCounter(testCounterOpts),
 				},
 				CollectCallback: customResourceCollectorCallback,
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = RegisterCollector(collector)
+			err = operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredCollectorMetrics).To(HaveLen(1))
-			Expect(operatorRegistry.registeredCollectorMetrics).To(HaveKey(testCounterOpts.Name))
+			metrics := operatormetrics.ListMetrics()
+			Expect(metrics).To(HaveLen(1))
+			Expect(metrics).To(ContainElement(collector.Metrics[0]))
 		})
 	})
 
 	Describe("CleanRegistry", func() {
 		BeforeEach(func() {
-			err := CleanRegistry()
+			err := operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("should remove all metrics from the registry", func() {
-			counter := NewCounter(testCounterOpts)
-			gauge := NewGauge(testGaugeOpts)
+			counter := operatormetrics.NewCounter(testCounterOpts)
+			gauge := operatormetrics.NewGauge(testGaugeOpts)
 
-			err := RegisterMetrics([]Metric{counter, gauge})
+			err := operatormetrics.RegisterMetrics([]operatormetrics.Metric{counter, gauge})
 			Expect(err).NotTo(HaveOccurred())
 
-			err = CleanRegistry()
+			err = operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredMetrics).To(HaveLen(0))
+			Expect(operatormetrics.ListMetrics()).To(BeEmpty())
 		})
 
 		It("should remove all collectors from the registry", func() {
-			collector := Collector{
-				Metrics: []Metric{
-					NewCounter(testCounterOpts),
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{
+					operatormetrics.NewCounter(testCounterOpts),
 				},
-				CollectCallback: func() []CollectorResult {
-					return []CollectorResult{}
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{}
 				},
 			}
 
-			err := RegisterCollector(collector)
+			err := operatormetrics.RegisterCollector(collector)
 			Expect(err).NotTo(HaveOccurred())
 
-			err = CleanRegistry()
+			err = operatormetrics.CleanRegistry()
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(operatorRegistry.registeredCollectors).To(HaveLen(0))
-			Expect(operatorRegistry.registeredCollectorMetrics).To(HaveLen(0))
+			Expect(operatormetrics.ListMetrics()).To(BeEmpty())
 		})
 	})
 })
