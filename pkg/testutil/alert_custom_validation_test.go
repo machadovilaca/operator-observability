@@ -1,4 +1,4 @@
-package testutil
+package testutil_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -6,13 +6,15 @@ import (
 
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/machadovilaca/operator-observability/pkg/testutil"
 )
 
 var _ = Describe("Custom Validators", func() {
-	var linter *Linter
+	var linter *testutil.Linter
 
 	BeforeEach(func() {
-		linter = New()
+		linter = testutil.New()
 	})
 
 	Context("Custom Alert Validations", func() {
@@ -32,8 +34,13 @@ var _ = Describe("Custom Validators", func() {
 					"runbook_url": "example/runbook/url",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertNameLength, ValidateAlertHasDescriptionAnnotation,
-				ValidateAlertRunbookURLAnnotation, ValidateAlertHealthImpactLabel, ValidateAlertPartOfAndComponentLabels)
+			linter.AddCustomAlertValidations(
+				testutil.ValidateAlertNameLength,
+				testutil.ValidateAlertHasDescriptionAnnotation,
+				testutil.ValidateAlertRunbookURLAnnotation,
+				testutil.ValidateAlertHealthImpactLabel,
+				testutil.ValidateAlertPartOfAndComponentLabels,
+			)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(BeEmpty())
 		})
@@ -49,7 +56,7 @@ var _ = Describe("Custom Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertNameLength)
+			linter.AddCustomAlertValidations(testutil.ValidateAlertNameLength)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert name exceeds 50 characters"))
@@ -66,7 +73,7 @@ var _ = Describe("Custom Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertHasDescriptionAnnotation)
+			linter.AddCustomAlertValidations(testutil.ValidateAlertHasDescriptionAnnotation)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert must have a description annotation"))
@@ -83,7 +90,7 @@ var _ = Describe("Custom Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertRunbookURLAnnotation)
+			linter.AddCustomAlertValidations(testutil.ValidateAlertRunbookURLAnnotation)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert must have a runbook_url annotation"))
@@ -101,7 +108,7 @@ var _ = Describe("Custom Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertHealthImpactLabel)
+			linter.AddCustomAlertValidations(testutil.ValidateAlertHealthImpactLabel)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(1))
 			Expect(problems[0].Description).To(ContainSubstring("alert must have a operator_health_impact label with value critical, warning, or none"))
@@ -118,7 +125,7 @@ var _ = Describe("Custom Validators", func() {
 					"summary": "Example summary",
 				},
 			}
-			linter.AddCustomAlertValidations(ValidateAlertPartOfAndComponentLabels)
+			linter.AddCustomAlertValidations(testutil.ValidateAlertPartOfAndComponentLabels)
 			problems := linter.LintAlert(alert)
 			Expect(problems).To(HaveLen(2))
 			Expect(problems[0].Description).To(ContainSubstring("alert must have a kubernetes_operator_part_of label"))
