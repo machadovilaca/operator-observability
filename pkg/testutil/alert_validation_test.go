@@ -1,4 +1,4 @@
-package testutil
+package testutil_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -6,13 +6,15 @@ import (
 
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	"github.com/machadovilaca/operator-observability/pkg/testutil"
 )
 
 var _ = Describe("Default Validators", func() {
-	var linter *Linter
+	var linter *testutil.Linter
 
 	BeforeEach(func() {
-		linter = New()
+		linter = testutil.New()
 	})
 
 	Context("Alert Validation", func() {

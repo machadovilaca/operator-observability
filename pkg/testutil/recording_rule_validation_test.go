@@ -1,4 +1,4 @@
-package testutil
+package testutil_test
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -8,13 +8,14 @@ import (
 
 	"github.com/machadovilaca/operator-observability/pkg/operatormetrics"
 	"github.com/machadovilaca/operator-observability/pkg/operatorrules"
+	"github.com/machadovilaca/operator-observability/pkg/testutil"
 )
 
 var _ = Describe("Validators", func() {
-	var linter *Linter
+	var linter *testutil.Linter
 
 	BeforeEach(func() {
-		linter = New()
+		linter = testutil.New()
 	})
 
 	Context("RecordingRule Validation", func() {

@@ -40,7 +40,7 @@ func (c Collector) hash() string {
 
 func (c Collector) Describe(ch chan<- *prometheus.Desc) {
 	for _, cm := range c.Metrics {
-		cm.getCollector().Describe(ch)
+		cm.GetCollector().Describe(ch)
 	}
 }
 
