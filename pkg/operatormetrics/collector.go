@@ -3,7 +3,6 @@ package operatormetrics
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -18,14 +17,6 @@ type Collector struct {
 	// CollectCallback is a function that returns a list of CollectionResults.
 	// The CollectionResults are used to populate the metrics in the collector.
 	CollectCallback func() []CollectorResult
-}
-
-type CollectorResult struct {
-	Metric      Metric
-	Labels      []string
-	ConstLabels map[string]string
-	Value       float64
-	Timestamp   time.Time
 }
 
 func (c Collector) hash() string {
