@@ -35,7 +35,8 @@ func (r *Registry) RegisterRecordingRules(recordingRules ...[]RecordingRule) err
 func (r *Registry) RegisterAlerts(alerts ...[]promv1.Rule) error {
 	for _, alertList := range alerts {
 		for _, alert := range alertList {
-			r.registeredAlerts[alert.Alert] = alert
+			key := alert.Alert + ":" + alert.Expr.String()
+			r.registeredAlerts[key] = alert
 		}
 	}
 
