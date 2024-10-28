@@ -121,29 +121,19 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredAlerts).To(ConsistOf(alerts))
 		})
 
-		It("should replace alerts with the same name in the same RegisterAlerts call", func() {
+		It("should replace alerts with the same name and same expression in the same RegisterAlerts call", func() {
 			alerts := []promv1.Rule{
 				{
 					Alert: "ExampleAlert1",
 					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
-					Labels: map[string]string{
-						"severity": "critical",
-					},
-					Annotations: map[string]string{
-						"summary":     "High request rate",
-						"description": "The request rate is too high.",
-					},
 				},
 				{
 					Alert: "ExampleAlert1",
 					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 200"),
-					Labels: map[string]string{
-						"severity": "critical",
-					},
-					Annotations: map[string]string{
-						"summary":     "High request rate",
-						"description": "The request rate is too high.",
-					},
+				},
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
 				},
 			}
 
@@ -151,22 +141,16 @@ var _ = Describe("OperatorRules", func() {
 			Expect(err).To(BeNil())
 
 			registeredAlerts := or.ListAlerts()
-			Expect(registeredAlerts).To(HaveLen(1))
-			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
+			Expect(registeredAlerts).To(HaveLen(2))
+			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 100"))
+			Expect(registeredAlerts[1].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
 
-		It("should replace alerts with the same name in different RegisterAlerts calls", func() {
+		It("should replace alerts with the same name and same expression in different RegisterAlerts calls", func() {
 			alerts := []promv1.Rule{
 				{
 					Alert: "ExampleAlert1",
 					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
-					Labels: map[string]string{
-						"severity": "critical",
-					},
-					Annotations: map[string]string{
-						"summary":     "High request rate",
-						"description": "The request rate is too high.",
-					},
 				},
 			}
 
@@ -177,13 +161,10 @@ var _ = Describe("OperatorRules", func() {
 				{
 					Alert: "ExampleAlert1",
 					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 200"),
-					Labels: map[string]string{
-						"severity": "critical",
-					},
-					Annotations: map[string]string{
-						"summary":     "High request rate",
-						"description": "The request rate is too high.",
-					},
+				},
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
 				},
 			}
 
@@ -191,8 +172,9 @@ var _ = Describe("OperatorRules", func() {
 			Expect(err).To(BeNil())
 
 			registeredAlerts := or.ListAlerts()
-			Expect(registeredAlerts).To(HaveLen(1))
-			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
+			Expect(registeredAlerts).To(HaveLen(2))
+			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 100"))
+			Expect(registeredAlerts[1].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
 	})
 })
