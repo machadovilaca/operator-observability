@@ -176,5 +176,35 @@ var _ = Describe("OperatorRules", func() {
 			Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 100"))
 			Expect(registeredAlerts[1].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
 		})
+
+		It("should create 2 alerts when registered with the same name but different expressions", func() {
+			alerts := []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 100"),
+				},
+			}
+
+			err := or.RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+
+			alerts = []promv1.Rule{
+				{
+					Alert: "ExampleAlert1",
+					Expr:  intstr.FromString("sum(rate(http_requests_total[1m])) > 200"),
+				},
+			}
+
+			err = or.RegisterAlerts(alerts)
+			Expect(err).To(BeNil())
+
+			By("Ensuring the output is consistent")
+			for i := 0; i < 10; i++ {
+				registeredAlerts := or.ListAlerts()
+				Expect(registeredAlerts).To(HaveLen(2))
+				Expect(registeredAlerts[0].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 100"))
+				Expect(registeredAlerts[1].Expr.String()).To(Equal("sum(rate(http_requests_total[1m])) > 200"))
+			}
+		})
 	})
 })
