@@ -1,0 +1,16 @@
+# HELP kubevirt_vm_count_total Total number of running VMs.
+# TYPE kubevirt_vm_count_total gauge
+kubevirt_vm_count_total{namespace="default",node="node01"} 5
+kubevirt_vm_count_total{namespace="kube-system",node="node02"} 2
+
+# HELP kubevirt_migration_count Total number of migrations.
+# TYPE kubevirt_migration_count counter
+kubevirt_migration_count{namespace="default",node="node01",status="succeeded"} 10
+kubevirt_migration_count{namespace="default",node="node01",status="failed"} 2
+kubevirt_migration_count{namespace="default",node="node02",status="succeeded"} 5
+kubevirt_migration_count{namespace="default",node="node02",status="failed"} 1
+
+# HELP kubevirt_vm_memory_usage_bytes Memory usage of running VMs.
+# TYPE kubevirt_vm_memory_usage_bytes gauge
+kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm1"} 204800
+kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm2"} 409600
