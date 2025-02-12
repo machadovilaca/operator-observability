@@ -14,3 +14,9 @@ kubevirt_migration_count{namespace="default",node="node02",status="failed"} 1
 # TYPE kubevirt_vm_memory_usage_bytes gauge
 kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm1"} 204800
 kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm2"} 409600
+kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm3"} 1004800 1738861782
+kubevirt_vm_memory_usage_bytes{namespace="default",vm_name="vm4"} 2009600 1738861784
+
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge - Added this to make sure we correctly parse metrics that contains white spaces in the labels
+go_info{version="go1.23.4 X:nocoverageredesign"} 1
