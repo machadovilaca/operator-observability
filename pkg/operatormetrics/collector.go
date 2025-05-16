@@ -68,11 +68,17 @@ func collectValue(ch chan<- prometheus.Metric, metric Metric, cr CollectorResult
 	}
 
 	labels := map[string]string{}
+
 	for k, v := range cr.ConstLabels {
-		labels[k] = v
+		if v != "" {
+			labels[k] = v
+		}
 	}
+
 	for k, v := range metric.GetOpts().ConstLabels {
-		labels[k] = v
+		if v != "" {
+			labels[k] = v
+		}
 	}
 
 	desc := prometheus.NewDesc(

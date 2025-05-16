@@ -27,6 +27,11 @@ var _ = Describe("Collector", func() {
 			Name: "collector_test_counter_2",
 			Help: "A test counter",
 		}
+		testCounterOptsWithLabels = operatormetrics.MetricOpts{
+			Name:        "collector_test_counter_with_labels",
+			Help:        "A test counter with labels",
+			ConstLabels: map[string]string{"label1": "value1", "label2": ""},
+		}
 	)
 
 	Describe("Collect", func() {
@@ -138,6 +143,43 @@ var _ = Describe("Collector", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(dto.TimestampMs).To(Equal(proto.Int64(1000)))
+		})
+
+		It("should not include const labels with empty values", func() {
+			counter := operatormetrics.NewCounter(testCounterOptsWithLabels)
+
+			collector := operatormetrics.Collector{
+				Metrics: []operatormetrics.Metric{counter},
+				CollectCallback: func() []operatormetrics.CollectorResult {
+					return []operatormetrics.CollectorResult{
+						{
+							Metric: counter,
+							Labels: nil,
+							ConstLabels: map[string]string{
+								"should_be_included": "value",
+								"should_be_skipped":  "",
+							},
+							Value: 1,
+						},
+					}
+				},
+			}
+
+			err := operatormetrics.RegisterCollector(collector)
+			Expect(err).NotTo(HaveOccurred())
+
+			ch := make(chan prometheus.Metric, 1)
+			go collector.Collect(ch)
+
+			metric := <-ch
+			desc := metric.Desc().String()
+			Expect(desc).To(ContainSubstring(testCounterOptsWithLabels.Name))
+
+			Expect(desc).To(ContainSubstring("label1=\"value1\""))
+			Expect(desc).NotTo(ContainSubstring("label2"))
+
+			Expect(desc).To(ContainSubstring("should_be_included=\"value\""))
+			Expect(desc).NotTo(ContainSubstring("should_be_skipped"))
 		})
 	})
 })
